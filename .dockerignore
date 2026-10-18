@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+data/app_state.db
+data/chroma/
+.pytest_cache/
+.git/
+venv/
+.venv/
+tests/
+scripts/
+docs/
+README.md

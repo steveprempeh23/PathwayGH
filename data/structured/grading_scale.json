@@ -1,0 +1,26 @@
+{
+  "_source": "WAEC/WASSCE grading scale, as summarized by GTEC-referencing admissions guides",
+  "_source_urls": [
+    "https://www.uni2study.com/ghana-wassce-aggregate-summation-tracker",
+    "https://ghanahighschools.com/?p=11721"
+  ],
+  "_retrieved": "2026-10-05",
+  "_note": "Grade point values are standardized across WAEC/WASSCE. Percentage ranges vary slightly by source/subject; treat as indicative, not authoritative for borderline cases.",
+  "grades": [
+    {"grade": "A1", "points": 1, "interpretation": "Excellent", "credit_pass": true},
+    {"grade": "B2", "points": 2, "interpretation": "Very Good", "credit_pass": true},
+    {"grade": "B3", "points": 3, "interpretation": "Good", "credit_pass": true},
+    {"grade": "C4", "points": 4, "interpretation": "Credit (high average)", "credit_pass": true},
+    {"grade": "C5", "points": 5, "interpretation": "Credit (average)", "credit_pass": true},
+    {"grade": "C6", "points": 6, "interpretation": "Credit (below average)", "credit_pass": true},
+    {"grade": "D7", "points": 7, "interpretation": "Pass (not a credit)", "credit_pass": false},
+    {"grade": "E8", "points": 8, "interpretation": "Pass (not a credit)", "credit_pass": false},
+    {"grade": "F9", "points": 9, "interpretation": "Fail", "credit_pass": false}
+  ],
+  "aggregate_rule": {
+    "subjects_counted": 6,
+    "composition": "3 core subjects + 3 elective subjects (best scores)",
+    "lower_is_better": true,
+    "mandatory_credit_gate": "Must score C6 or better in English Language and Core Mathematics, and in Integrated Science (science track) or Social Studies (non-science track), regardless of total aggregate"
+  }
+}

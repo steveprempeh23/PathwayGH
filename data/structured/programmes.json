@@ -1,0 +1,113 @@
+{
+  "_source": "Compiled from University of Ghana official entry requirements and general GTEC-referencing public-university admission guidance",
+  "_source_urls": [
+    "https://www.ug.edu.gh/fcos.ug/node/9",
+    "https://www.uni2study.com/articles/university-of-ghana-legon-admission-guide",
+    "https://www.uni2study.com/ghana-wassce-aggregate-summation-tracker",
+    "https://ghanahighschools.com/?p=11721",
+    "https://yen.com.gh/people/311608-university-ghana-legon-releases-20262027-cut-points-undergraduate-programmes/",
+    "https://yen.com.gh/education/311617-knust-announces-medicine-dentistry-entrance-exam-date/",
+    "https://www.uni2study.com/articles/wassce-aggregate-cut-offs-medicine-law-ghana"
+  ],
+  "_retrieved": "2026-10-16",
+  "_note": "Aggregate bands below are of two kinds, marked explicitly per category: 'verified_example'/'verified_examples' means drawn from a specific cited cutoff case for a specific institution, programme and admission cycle; 'approximate_band' means a general guidance range, not any one institution's published cutoff. IMPORTANT, found while sourcing the 2026/2027 figures below: different news sources reported slightly different cut-offs for the SAME programme in the SAME cycle (e.g. KNUST Medicine was reported as aggregate 6 in one 2026/27 article and aggregate 7 in another, both citing KNUST's own release). This is real-world evidence that even 'verified' secondary-source figures can disagree, and is exactly why every verified_example below states its specific source and cycle rather than presenting one number as definitive. Neither kind should be presented to a user as a live, guaranteed-current cutoff - the system must state this distinction when answering, and must not imply a live CSSPS/university feed. None of this is historical admissions RECORDS (actual past admitted students' data) - that data is not publicly available anywhere; see docs/extending-data.md.",
+  "programme_categories": [
+    {
+      "category": "Medicine / Dentistry",
+      "example_programmes": ["MBChB Medicine", "BDS Dentistry"],
+      "aggregate_band": {"best": 6, "worst": 10},
+      "confidence": "approximate_band",
+      "verified_examples": [
+        "University of Ghana, 2026/2027 cycle: MBChB Medicine aggregate 8 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16).",
+        "KNUST, 2026/2027 cycle: BSc Human Biology (Medicine) aggregate 7, Dentistry aggregate 9 or better (source: yen.com.gh reporting KNUST's entrance-exam announcement, accessed 2026-10-16). Note: a separate 2026/27 secondary source reported KNUST Medicine as aggregate 6 instead of 7 - the two disagree, which is itself the reason this is labeled a cited example rather than a guaranteed figure."
+      ],
+      "required_core": ["English Language", "Core Mathematics", "Integrated Science"],
+      "required_electives": {"type": "all_of", "options": ["Biology", "Chemistry", "Physics"]},
+      "elective_min_grade": "B3",
+      "institutions_example": ["University of Ghana", "KNUST", "UCC"],
+      "track": "science"
+    },
+    {
+      "category": "Engineering / Pharmacy / Actuarial Science",
+      "example_programmes": ["BSc Biomedical Engineering", "BPharm", "BSc Actuarial Science"],
+      "aggregate_band": {"best": 6, "worst": 18},
+      "confidence": "approximate_band",
+      "verified_examples": [
+        "BSc Biomedical Engineering at University of Ghana, 2020/21 cycle: aggregate 9 with a minimum of B3 in Elective Mathematics. Cited as a specific historical case, not a current cutoff.",
+        "BSc Biomedical Engineering at University of Ghana, 2026/2027 cycle: aggregate 6 - the single most competitive cut-off UG published that cycle (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16). Notably lower than the 2020/21 figure above - a real example of how much a specific programme's cutoff can move cycle to cycle, which is exactly why a single number should never be treated as permanently current.",
+        "Doctor of Pharmacy at University of Ghana, 2026/2027 cycle: aggregate 10 (same source)."
+      ],
+      "required_core": ["English Language", "Core Mathematics", "Integrated Science"],
+      "required_electives": {"type": "all_of", "options": ["Elective Mathematics", "Physics", "Chemistry"]},
+      "elective_min_grade": "B3",
+      "institutions_example": ["University of Ghana", "KNUST"],
+      "track": "science"
+    },
+    {
+      "category": "General Science (non-clinical)",
+      "example_programmes": ["BSc Computer Science", "BSc Biochemistry", "BSc Statistics"],
+      "aggregate_band": {"best": 6, "worst": 24},
+      "confidence": "approximate_band",
+      "verified_examples": [
+        "BSc Computer Science at University of Ghana, 2026/2027 cycle: aggregate 7 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16)."
+      ],
+      "required_core": ["English Language", "Core Mathematics", "Integrated Science"],
+      "required_electives": {"type": "choose_n", "n": 2, "options": ["Physics", "Chemistry", "Biology"], "also_required": ["Elective Mathematics"]},
+      "elective_min_grade": "C6",
+      "institutions_example": ["University of Ghana", "KNUST", "UCC"],
+      "track": "science"
+    },
+    {
+      "category": "Business / Finance / Accounting",
+      "example_programmes": ["BSc Administration (Accounting/Banking/Finance)", "BCom"],
+      "aggregate_band": {"best": 6, "worst": 24},
+      "confidence": "approximate_band",
+      "verified_examples": [
+        "BSc Administration at University of Ghana, 2026/2027 cycle: aggregate 9 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16)."
+      ],
+      "required_core": ["English Language", "Core Mathematics", "Social Studies"],
+      "required_electives": {"type": "choose_n", "n": 1, "options": ["Elective Mathematics", "Economics"], "plus_additional": 2},
+      "elective_min_grade": "C6",
+      "institutions_example": ["University of Ghana", "KNUST", "UCC"],
+      "track": "business"
+    },
+    {
+      "category": "General Humanities / Social Sciences / Education",
+      "example_programmes": ["BA English", "BA Sociology", "BEd"],
+      "aggregate_band": {"best": 6, "worst": 24},
+      "confidence": "approximate_band",
+      "verified_examples": [
+        "BA English and BA Sociology at University of Ghana, 2026/2027 cycle: both aggregate 18 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16)."
+      ],
+      "required_core": ["English Language", "Core Mathematics", "Social Studies"],
+      "required_electives": {"type": "choose_n", "n": 3, "options": ["any approved Arts elective"]},
+      "elective_min_grade": "C6",
+      "institutions_example": ["University of Ghana", "UCC", "UEW"],
+      "track": "arts"
+    },
+    {
+      "category": "Open Public-University Entry (general eligibility floor)",
+      "example_programmes": ["Entry-level eligibility for most public-university programmes"],
+      "aggregate_band": {"best": 6, "worst": 36},
+      "confidence": "approximate_band",
+      "verified_example": "GTEC-accredited public universities commonly cite aggregate 36 as the general floor, with mandatory C6+ in English, Core Mathematics, and the relevant third core subject \u2014 see mandatory_credit_gate in grading_scale.json. University of Ghana's own stated regular-admission ceiling is aggregate 24 (30 for Distance Education) \u2014 narrower than the general public-university floor, and itself an example of how this floor varies by institution.",
+      "required_core": ["English Language", "Core Mathematics", "Integrated Science or Social Studies (track-dependent)"],
+      "required_electives": {"type": "choose_n", "n": 3, "options": ["any approved elective relevant to intended programme"]},
+      "elective_min_grade": "C6",
+      "institutions_example": ["GTEC-accredited public universities, general floor"],
+      "track": "general"
+    },
+    {
+      "category": "HND / Polytechnic (Technical University) Tracks",
+      "example_programmes": ["HND Accounting", "HND Fashion Design and Technology", "HND Engineering"],
+      "aggregate_band": {"best": 6, "worst": 48},
+      "confidence": "approximate_band",
+      "caveat": "Previously listed elective_min_grade as D7, which contradicted the mandatory credit-gate rule in grading_scale.json (D7 is a pass, not a credit). Corrected to C6 for the core-subject gate. Individual technical universities may set department-specific elective rules that differ from this; treat this row as the more conservative, general-floor assumption rather than a verified per-institution rule.",
+      "required_core": ["English Language", "Core Mathematics"],
+      "required_electives": {"type": "choose_n", "n": 3, "options": ["department-specific electives, varies by programme"]},
+      "elective_min_grade": "C6",
+      "institutions_example": ["Technical Universities (formerly Polytechnics)"],
+      "track": "technical"
+    }
+  ]
+}

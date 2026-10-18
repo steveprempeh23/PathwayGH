@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PathwayGH Advisor</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --panel: #ffffff;
+    --border: #e2e2de;
+    --text: #1f2320;
+    --muted: #6b6f6a;
+    --user-bubble: #2f6b4f;
+    --assistant-bubble: #eef1ee;
+    --accent: #2f6b4f;
+    --error: #b3372c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px;
+  }
+  .app {
+    width: 100%;
+    max-width: 720px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 85vh;
+    overflow: hidden;
+  }
+  header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 { font-size: 16px; margin: 0; }
+  header p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+  .header-actions button {
+    font-size: 12px;
+    padding: 6px 10px;
+    margin-left: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .header-actions button:hover { background: var(--bg); }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--panel);
+    border-radius: 12px;
+    max-width: 560px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 20px 22px;
+  }
+  .modal-box h2 {
+    margin: 0 0 4px;
+    font-size: 16px;
+  }
+  .modal-box .modal-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .modal-close-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+    gap: 8px;
+  }
+  .modal-close-row button.secondary {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .calculator {
+    /* legacy class retained for the result/error containers' styling */
+  }
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .calc-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .calc-field select, .calc-field input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+  }
+  .calc-elective { display: flex; gap: 6px; }
+  .calc-elective select:first-child { flex: 1.3; }
+  .calc-elective select:last-child { flex: 1; }
+  .calc-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .calc-actions button {
+    padding: 7px 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .calc-result {
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .calc-result .agg-line {
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .calc-result table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .calc-result th, .calc-result td {
+    text-align: left;
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .calc-result .yes { color: var(--accent); font-weight: 600; }
+  .calc-result .no { color: var(--error); }
+  .calc-result .unverified { color: var(--muted); font-style: italic; }
+  .calc-error { color: var(--error); font-size: 12px; margin-top: 8px; }
+
+  .log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bubble {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    line-height: 1.4;
+    font-size: 14px;
+    white-space: pre-wrap;
+  }
+  .bubble.user {
+    align-self: flex-end;
+    background: var(--user-bubble);
+    color: white;
+    border-bottom-right-radius: 2px;
+  }
+  .bubble.assistant {
+    align-self: flex-start;
+    background: var(--assistant-bubble);
+    border-bottom-left-radius: 2px;
+  }
+  .bubble.system {
+    align-self: center;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-style: italic;
+  }
+  .bubble.error {
+    align-self: flex-start;
+    background: #fbe9e7;
+    color: var(--error);
+  }
+
+  .recommendation-card {
+    align-self: flex-start;
+    max-width: 85%;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #fafdfb;
+    font-size: 13px;
+  }
+  .recommendation-card h3 { margin: 0 0 6px; font-size: 14px; }
+  .recommendation-card .confidence {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--assistant-bubble);
+    margin-bottom: 6px;
+  }
+  .recommendation-card ul { margin: 6px 0 0 18px; padding: 0; }
+  .recommendation-card li { margin-bottom: 2px; }
+  .recommendation-card .sources { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+  form {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+  }
+  textarea {
+    flex: 1;
+    resize: none;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    height: 42px;
+  }
+  button.send {
+    padding: 0 18px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  button.send:disabled { opacity: 0.5; cursor: default; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div>
+      <h1>PathwayGH Advisor</h1>
+      <p>WASSCE aggregate &amp; programme guidance - supporting aid, not a replacement for a counsellor</p>
+    </div>
+    <div class="header-actions">
+      <button id="openCalcBtn" type="button" style="font-weight:600;">📝 Enter My Grades</button>
+      <button id="newSessionBtn" type="button">New session</button>
+      <button id="resetBtn" type="button">Reset</button>
+    </div>
+  </header>
+
+  <div class="modal-overlay" id="calcModal">
+    <div class="modal-box">
+      <h2>Enter Your Grades</h2>
+      <div class="modal-sub">Computed directly - not generated by the AI, so it's always exact.</div>
+
+      <div class="calc-field" style="margin-bottom:10px;">
+        <label for="calcProgramme">What SHS programme are you in?</label>
+        <select id="calcProgramme">
+          <option value="science">General Science</option>
+          <option value="business">Business</option>
+          <option value="general_arts">General Arts</option>
+          <option value="visual_arts">Visual Arts</option>
+          <option value="home_economics">Home Economics</option>
+          <option value="agricultural_science">Agricultural Science</option>
+          <option value="technical">Technical / Vocational</option>
+        </select>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">
+          This picks the usual elective subjects for your programme below - pick "General Arts" if yours isn't listed and choose your actual electives there.
+        </div>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label for="calcEnglish">English Language</label>
+          <select id="calcEnglish" class="grade-select"></select>
+        </div>
+        <div class="calc-field">
+          <label for="calcCoreMaths">Core Mathematics</label>
+          <select id="calcCoreMaths" class="grade-select"></select>
+        </div>
+        <div class="calc-field">
+          <label id="calcThirdCoreLabel" for="calcThirdCore">Integrated Science</label>
+          <select id="calcThirdCore" class="grade-select"></select>
+        </div>
+      </div>
+
+      <div class="calc-grid" style="margin-top:4px;">
+        <div class="calc-field">
+          <label>Elective 1</label>
+          <div class="calc-elective">
+            <select id="calcElective1Subject" class="elective-subject-select"></select>
+            <select id="calcElective1Grade" class="grade-select"></select>
+          </div>
+        </div>
+        <div class="calc-field">
+          <label>Elective 2</label>
+          <div class="calc-elective">
+            <select id="calcElective2Subject" class="elective-subject-select"></select>
+            <select id="calcElective2Grade" class="grade-select"></select>
+          </div>
+        </div>
+        <div class="calc-field">
+          <label>Elective 3</label>
+          <div class="calc-elective">
+            <select id="calcElective3Subject" class="elective-subject-select"></select>
+            <select id="calcElective3Grade" class="grade-select"></select>
+          </div>
+        </div>
+        <div class="calc-field">
+          <label>Elective 4 (optional)</label>
+          <div class="calc-elective">
+            <select id="calcElective4Subject" class="elective-subject-select">
+              <option value="">— none —</option>
+            </select>
+            <select id="calcElective4Grade" class="grade-select"></select>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+        Sat 4 electives? Pick all 4 - WAEC automatically uses your best 3 for the aggregate, so you don't need to decide which.
+        Only 3 core subjects ever count toward the aggregate regardless of how many you registered for, so there's no 4th core field.
+        Don't see your exact elective in the list? Pick "General Arts" above for a broader list.
+      </div>
+
+      <div id="calcError" class="calc-error"></div>
+
+      <div class="modal-close-row">
+        <button id="calcCancelBtn" type="button" class="secondary">Cancel</button>
+        <button id="calcSubmit" type="button">Calculate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <form id="chatForm">
+    <textarea id="messageInput" placeholder="Tell me your grades, or ask a question..." required></textarea>
+    <button class="send" id="sendBtn" type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+// --- Deterministic calculator (no LLM involved) ---
+const WASSCE_GRADES = ["A1", "B2", "B3", "C4", "C5", "C6", "D7", "E8", "F9"];
+
+function populateGradeSelects() {
+  document.querySelectorAll(".grade-select").forEach((sel) => {
+    sel.innerHTML = WASSCE_GRADES.map((g) => `<option value="${g}">${g}</option>`).join("");
+  });
+}
+populateGradeSelects();
+
+// Typical electives per SHS programme - picking a programme fills the
+// elective dropdowns with its usual subjects, instead of asking the
+// student to type or recall an exact official subject name. This also
+// structurally prevents subject-name typos for the common case, since
+// these are now real dropdowns, not free text.
+const ELECTIVES_BY_PROGRAMME = {
+  science: ["Elective Mathematics", "Physics", "Chemistry", "Biology"],
+  business: ["Elective Mathematics", "Economics", "Accounting", "Costing", "Business Management"],
+  general_arts: ["Economics", "Geography", "Government", "History", "Literature in English", "French", "Religious and Moral Education", "Elective Mathematics"],
+  visual_arts: ["Picture Making", "Graphic Design", "Ceramics", "Textiles", "Leatherwork", "General Knowledge in Art", "Sculpture"],
+  home_economics: ["Food and Nutrition", "Management in Living", "Clothing and Textiles", "General Knowledge in Art"],
+  agricultural_science: ["General Agriculture", "Animal Husbandry", "Crop Husbandry", "Chemistry", "Biology"],
+  technical: ["Technical Drawing", "Applied Electricity", "Electronics", "Woodwork", "Metalwork", "Auto Mechanics"],
+};
+
+// Only two values exist for the underlying WAEC third-core rule (which
+// core subject counts: Integrated Science vs Social Studies). Programmes
+// map onto it as a reasonable default, not a precise per-programme rule -
+// Agricultural Science is grouped with Science here since it's also
+// Integrated-Science-based in practice.
+const PROGRAMME_TO_TRACK = {
+  science: "science",
+  agricultural_science: "science",
+  business: "non_science",
+  general_arts: "non_science",
+  visual_arts: "non_science",
+  home_economics: "non_science",
+  technical: "non_science",
+};
+
+const calcProgramme = document.getElementById("calcProgramme");
+const calcThirdCoreLabel = document.getElementById("calcThirdCoreLabel");
+const calcModal = document.getElementById("calcModal");
+
+function populateElectiveSubjectSelects() {
+  const subjects = ELECTIVES_BY_PROGRAMME[calcProgramme.value] || [];
+  const options = subjects.map((s) => `<option value="${s}">${s}</option>`).join("");
+  for (const i of [1, 2, 3]) {
+    document.getElementById(`calcElective${i}Subject`).innerHTML = options;
+  }
+  // Elective 4 keeps its "none" option, since it's optional.
+  document.getElementById("calcElective4Subject").innerHTML =
+    '<option value="">— none —</option>' + options;
+}
+
+function updateThirdCoreLabel() {
+  const track = PROGRAMME_TO_TRACK[calcProgramme.value] || "non_science";
+  calcThirdCoreLabel.textContent = track === "science" ? "Integrated Science" : "Social Studies";
+}
+
+function onProgrammeChange() {
+  populateElectiveSubjectSelects();
+  updateThirdCoreLabel();
+}
+calcProgramme.addEventListener("change", onProgrammeChange);
+onProgrammeChange(); // populate for the default selection on page load
+
+function openCalcModal() {
+  document.getElementById("calcError").textContent = "";
+  calcModal.classList.add("open");
+}
+function closeCalcModal() {
+  calcModal.classList.remove("open");
+}
+
+document.getElementById("openCalcBtn").addEventListener("click", openCalcModal);
+document.getElementById("calcCancelBtn").addEventListener("click", closeCalcModal);
+calcModal.addEventListener("click", (e) => {
+  if (e.target === calcModal) closeCalcModal(); // click on the dark overlay, not the box
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && calcModal.classList.contains("open")) closeCalcModal();
+});
+
+function renderCalcError(message) {
+  document.getElementById("calcError").textContent = message;
+}
+
+function renderCalcResultCard(data) {
+  const agg = data.aggregate;
+  const elig = data.eligibility;
+
+  const gateLine = agg.credit_gate_passed
+    ? '<span class="yes">Credit gate: passed</span>'
+    : `<span class="no">Credit gate: FAILED (${agg.failing_subjects.join(", ")})</span>`;
+
+  const allElectiveNames = Object.keys(agg.subject_points).filter(
+    (name) => agg.electives_used && !["English Language", "Core Mathematics", "Integrated Science", "Social Studies"].includes(name)
+  );
+  const droppedElectives = allElectiveNames.filter((name) => !agg.electives_used.includes(name));
+  const electivesNote =
+    agg.electives_used && agg.electives_used.length
+      ? `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">
+          Electives counted toward aggregate: ${escapeHtml(agg.electives_used.join(", "))}
+          ${droppedElectives.length ? ` &middot; not counted (weaker 4th): ${escapeHtml(droppedElectives.join(", "))}` : ""}
+        </div>`
+      : "";
+
+  const rows = elig.matches
+    .map((m) => {
+      let matchLabel;
+      if (m.electives_match === null) {
+        matchLabel = '<span class="unverified">not checkable (generic electives)</span>';
+      } else if (m.electives_match) {
+        matchLabel = '<span class="yes">match</span>';
+      } else {
+        matchLabel = '<span class="no">no match</span>';
+      }
+      const overall = m.overall_eligible
+        ? '<span class="yes">Eligible</span>'
+        : '<span class="no">Not eligible</span>';
+      const schoolsLine =
+        m.overall_eligible && m.institutions_example && m.institutions_example.length
+          ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">e.g. ${escapeHtml(m.institutions_example.join(", "))}</div>`
+          : "";
+      return `<tr>
+        <td>${escapeHtml(m.category)}${schoolsLine}</td>
+        <td>${m.aggregate_band[0]}-${m.aggregate_band[1]} (${escapeHtml(m.confidence)})</td>
+        <td>${matchLabel}</td>
+        <td>${overall}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.innerHTML = `
+    <h3>Aggregate: ${agg.aggregate}</h3>
+    <div style="margin-bottom:4px;">${gateLine}</div>
+    ${electivesNote}
+    <table>
+      <thead><tr><th>Category</th><th>Band</th><th>Electives</th><th>Result</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+      Bands marked "approximate_band" are illustrative, not confirmed current cutoffs.
+      Categories with generic elective requirements can't be checked against specific subjects.
+      Example institutions are illustrative, not a complete or guaranteed list of where you'd be admitted.
+      Computed directly - not generated by the AI.
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
+document.getElementById("calcSubmit").addEventListener("click", async () => {
+  const chosenSubjects = [];
+  const electives = {};
+  for (const i of [1, 2, 3]) {
+    const subject = document.getElementById(`calcElective${i}Subject`).value.trim();
+    const grade = document.getElementById(`calcElective${i}Grade`).value;
+    if (!subject) {
+      renderCalcError(`Please pick a subject for Elective ${i}.`);
+      return;
+    }
+    chosenSubjects.push(subject);
+    electives[subject] = grade;
+  }
+  // Elective 4 is optional - only included if a subject was actually picked.
+  const elective4Subject = document.getElementById("calcElective4Subject").value.trim();
+  if (elective4Subject) {
+    chosenSubjects.push(elective4Subject);
+    electives[elective4Subject] = document.getElementById("calcElective4Grade").value;
+  }
+
+  // Picking the same subject twice would silently collapse into one entry
+  // and quietly lose a grade - catch that before it ever reaches the server.
+  const duplicates = chosenSubjects.filter((s, idx) => chosenSubjects.indexOf(s) !== idx);
+  if (duplicates.length > 0) {
+    renderCalcError(`You picked "${duplicates[0]}" more than once - please choose different subjects for each elective.`);
+    return;
+  }
+
+  const payload = {
+    session_id: await ensureSession(),
+    grades: {
+      english: document.getElementById("calcEnglish").value,
+      core_mathematics: document.getElementById("calcCoreMaths").value,
+      third_core: document.getElementById("calcThirdCore").value,
+      electives,
+      track: PROGRAMME_TO_TRACK[calcProgramme.value] || "non_science",
+    },
+  };
+
+  try {
+    const res = await fetch("/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const detail = Array.isArray(body.detail)
+        ? body.detail.map((d) => d.msg).join("; ")
+        : body.detail || "Calculation failed - check your inputs.";
+      renderCalcError(detail);
+      return;
+    }
+    const data = await res.json();
+    closeCalcModal();
+    renderCalcResultCard(data);
+  } catch (err) {
+    renderCalcError("Could not reach the server - check your connection.");
+  }
+});
+
+let sessionId = null;
+
+const log = document.getElementById("log");
+const form = document.getElementById("chatForm");
+const input = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+const newSessionBtn = document.getElementById("newSessionBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+function addBubble(role, text) {
+  const div = document.createElement("div");
+  div.className = "bubble " + role;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+
+function addRecommendationCard(rec) {
+  const div = document.createElement("div");
+  div.className = "recommendation-card";
+
+  const caveats = (rec.caveats || []).map(c => `<li>${escapeHtml(c)}</li>`).join("");
+  const sources = (rec.sources || []).join(", ");
+
+  div.innerHTML = `
+    <h3>${escapeHtml(rec.programme_category)}</h3>
+    <span class="confidence">confidence: ${escapeHtml(rec.confidence)}</span>
+    <div>${escapeHtml(rec.fit_reason)}</div>
+    ${caveats ? `<ul>${caveats}</ul>` : ""}
+    ${sources ? `<div class="sources">Sources: ${escapeHtml(sources)}</div>` : ""}
+  `;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+async function ensureSession() {
+  if (sessionId) return sessionId;
+  const res = await fetch("/session/new", { method: "POST" });
+  const data = await res.json();
+  sessionId = data.session_id;
+  return sessionId;
+}
+
+async function startNewSession(systemNote) {
+  sessionId = null;
+  await ensureSession();
+  log.innerHTML = "";
+  addBubble("system", systemNote || "New session started.");
+}
+
+newSessionBtn.addEventListener("click", () => startNewSession("New session started."));
+
+resetBtn.addEventListener("click", async () => {
+  if (!sessionId) {
+    await startNewSession("New session started.");
+    return;
+  }
+  try {
+    const res = await fetch("/session/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+    const data = await res.json();
+    log.innerHTML = "";
+    addBubble("system", `Session reset (${data.deleted_messages} messages cleared).`);
+  } catch (err) {
+    addBubble("error", "Could not reset session - check your connection.");
+  }
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const message = input.value.trim();
+  if (!message) return;
+
+  input.value = "";
+  sendBtn.disabled = true;
+  addBubble("user", message);
+  const liveBubble = addBubble("assistant", "Thinking...");
+  let streamedText = "";
+  let gotAnyToken = false;
+
+  try {
+    await ensureSession();
+    const res = await fetch("/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, message }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      liveBubble.remove();
+      addBubble("error", errBody.detail || "Something went wrong. Please try again.");
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let recommendation = null;
+    let calculation = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop(); // last part may be incomplete - keep for next read
+
+      for (const part of parts) {
+        if (!part.startsWith("data: ")) continue;
+        const event = JSON.parse(part.slice(6));
+
+        if (event.type === "progress") {
+          liveBubble.textContent = event.message;
+        } else if (event.type === "token") {
+          if (!gotAnyToken) {
+            liveBubble.textContent = ""; // clear "Thinking..."/progress text
+            gotAnyToken = true;
+          }
+          streamedText += event.text;
+          liveBubble.textContent = streamedText;
+          log.scrollTop = log.scrollHeight;
+        } else if (event.type === "error") {
+          liveBubble.remove();
+          addBubble("error", event.message || "Something went wrong.");
+          return;
+        } else if (event.type === "done") {
+          recommendation = event.recommendation;
+          calculation = event.calculation;
+        }
+      }
+    }
+
+    if (recommendation) {
+      addRecommendationCard(recommendation);
+    }
+    if (calculation) {
+      // Always render the REAL tool output, independent of whatever the
+      // model's own text said - this is the fix for a live-observed
+      // hallucination where a small model fabricated category names
+      // instead of relaying the real eligibility result (see
+      // docs/evaluation.md Failure 3). Same card the no-LLM /calculate
+      // button uses, so the ground truth looks identical either way.
+      renderCalcResultCard(calculation);
+    }
+  } catch (err) {
+    liveBubble.remove();
+    addBubble("error", "Could not reach the advisor - check your connection and try again.");
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+  }
+});
+
+// Initialize on load.
+startNewSession("Welcome! Enter your grades in the form that just opened to get an instant, exact result - or close it and just chat if you'd rather ask questions first.");
+openCalcModal(); // pop up immediately on load, not just on button click
+</script>
+
+</body>
+</html>
