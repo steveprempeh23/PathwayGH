@@ -443,6 +443,72 @@ free-text prose against a whitelist the way a structured field can be
 checked. This is a real, acknowledged gap, not a claim of complete
 coverage.
 
+### Failure 10: synthetic-data caveat dropped from cohort-statistics answers (observed live, Oct 2026)
+
+**What happened:** a student asked for schools offering Physician
+Assistantship and "what percentage I have of getting admission." No
+`institutions_example` entry existed yet for that programme at the time,
+and the model called `analyze_outcomes` with an unrelated category ("Open
+Public-University Entry") rather than saying it had no matching data. It
+then answered: *"the admission rate for the category... is 61.4%"* - with
+no mention anywhere in the reply that the underlying dataset is synthetic
+demonstration data, not real admissions records. `system_prompt.py` rule 5
+requires that caveat "every time, not just the first" - the model simply
+didn't include it this turn.
+
+**Why this is the same failure shape as Failure 3, applied to a different
+tool:** `analyze_outcomes`'s real result (`CohortStats.data_source`) always
+*contains* the correct caveat - the tool was never the problem. The
+failure is identical to Failure 3's: the model's own retelling of a
+correct tool result silently dropped the one piece of it that mattered
+most for the student not to be misled, and nothing forced it back in.
+A bare, confident-sounding "61.4%" is also a worse failure than an
+obviously-wrong number would be, for the same reason Failure 9's fabricated
+citation was worse than a fabricated fact alone: it reads as more credible
+than it is.
+
+**Fix, same two layers as Failure 3/9 again:**
+1. **Prompt-level** (already existed, rule 5): instructs the model to pass
+   the caveat on every time. This alone clearly isn't sufficient - it's
+   the same rule that was already in place when this failure happened live.
+2. **Code-level, the one that actually holds regardless of prompt
+   compliance** (`app/llm/orchestrator.py`): `_execute_tool` now returns
+   the real `CohortStats` object as `extra["cohort_stats"]`, threaded
+   through `_resolve_tools` exactly like `aggregate_result`/
+   `eligibility_result` already were, and surfaced as a `cohort_stats`
+   field on both `handle_turn`'s return dict and `handle_turn_stream`'s
+   `"done"`/`"error"` events - independent of whatever the model's own text
+   does or doesn't say. `app/api/schemas.py`'s `ChatResponse` gained a
+   matching `cohort_stats: Optional[CohortStats]` field (without it,
+   FastAPI's `response_model` would have silently stripped the fix back
+   out of the actual API response - the same class of "real data computed
+   correctly, then lost before reaching the user" bug this whole fix is
+   about). The frontend (`static/index.html`) renders `cohort_stats` in
+   its own small card, with `data_source` always shown in bold, the same
+   way the calculation card already renders Failure 3's fix.
+
+Verified with
+`test_cohort_stats_carries_synthetic_caveat_even_when_model_narration_drops_it`
+(`tests/test_orchestrator.py`): a fake model answers with a bare
+percentage and zero mention of "synthetic" - the test asserts the model's
+own reply text indeed omits it, then asserts `result["cohort_stats"]
+["data_source"]` contains it anyway.
+
+**What this doesn't fix:** it does not fix the separate problem in the
+same live exchange - the model analyzing an unrelated category instead of
+telling the student plainly that no cohort-statistics data exists yet for
+Physician Assistantship. `analyze_outcomes` correctly raises `ValueError`
+for an unknown *category name*, but "Physician Assistantship" was, at the
+time, a real category with real (if initially empty) data, so nothing
+rejected the call - the model simply chose the wrong `programme_category`
+argument. That is a tool-selection mistake, not a data-loss bug, and
+neither this fix nor the new `institutions_example` entries address it
+directly; it would need either a stricter prompt instruction to match the
+student's named programme before calling the tool, or a code-level check
+that the requested programme name (e.g. extracted from the user's own
+message) matches the category actually queried. Left as a known gap, not
+claimed as fixed.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

@@ -227,6 +227,40 @@ def test_analyze_outcomes_tool_wired_through_orchestrator():
     assert result["recommendation"] is None
 
 
+def test_cohort_stats_carries_synthetic_caveat_even_when_model_narration_drops_it():
+    """Regression test for Failure 9 (docs/evaluation.md): a live model call
+    answered a cohort-statistics question with a bare percentage and NO
+    mention that the dataset is synthetic, even though system_prompt rule 5
+    requires that caveat every time. The fix (mirroring Failure 3's fix for
+    calculation results) is that result['cohort_stats']['data_source'] must
+    carry the real caveat from code, independent of whatever the model's own
+    reply text says or omits.
+    """
+    fake = FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {
+                        "name": "analyze_outcomes",
+                        "arguments": {"programme_category": "Open Public-University Entry (general eligibility floor)"},
+                    }
+                ]
+            ),
+            # Deliberately omits the synthetic-data caveat - exactly what
+            # the live model did.
+            _assistant(content="The admission rate for that category is 61.4%."),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-cohort", "what's the acceptance rate?", chat_fn=fake)
+
+    # The model's text can omit the caveat...
+    assert "synthetic" not in result["reply"]
+    # ...but cohort_stats must carry it regardless.
+    assert result["cohort_stats"] is not None
+    assert "synthetic" in result["cohort_stats"]["data_source"].lower()
+
+
 def test_analyze_outcomes_unknown_category_error_fed_back_not_raised():
     fake = FakeChat(
         [

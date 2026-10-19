@@ -65,15 +65,21 @@ def _execute_tool(name: str, arguments: dict):
     """Runs one tool call. Returns (result_content_for_model, recommendation, extra).
 
     `extra` is a dict carrying the REAL typed result object for
-    compute_aggregate/check_eligibility calls (e.g. {"aggregate": AggregateResult}),
-    or None otherwise. This is the ground truth the orchestrator attaches to
+    compute_aggregate/check_eligibility/analyze_outcomes calls (e.g.
+    {"aggregate": AggregateResult} or {"cohort_stats": CohortStats}), or
+    None otherwise. This is the ground truth the orchestrator attaches to
     its response independent of anything the model says in its own reply -
-    see the "calculation" field on handle_turn's return value and the
-    handle_turn_stream "done" event. This exists specifically because a
-    small model was observed, live, paraphrasing correct tool output into
-    fabricated category names (see docs/evaluation.md, Failure 3) - the
-    fix is to never rely on the model's retelling for the numbers that
-    actually matter.
+    see the "calculation"/"cohort_stats" fields on handle_turn's return
+    value and the handle_turn_stream "done" event. This exists specifically
+    because a small model was observed, live, paraphrasing correct tool
+    output into fabricated category names (see docs/evaluation.md,
+    Failure 3) - the fix is to never rely on the model's retelling for the
+    numbers that actually matter. Failure 9 (see docs/evaluation.md) is the
+    same failure mode applied to analyze_outcomes: the model dropped the
+    mandatory "this is synthetic demonstration data" caveat from its own
+    reply text even though the system prompt requires it every time -
+    cohort_stats.data_source carries that caveat verbatim from code, so the
+    API response has it regardless of what the model's prose says.
 
     recommendation is non-None only when submit_recommendation succeeds.
     Never raises for ordinary bad input - bad input becomes an error message
@@ -123,7 +129,7 @@ def _execute_tool(name: str, arguments: dict):
                 programme_category=arguments.get("programme_category"),
                 track=arguments.get("track"),
             )
-            return stats.model_dump_json(), None, None
+            return stats.model_dump_json(), None, {"cohort_stats": stats}
         except ValueError as exc:
             return json.dumps({"error": str(exc)}), None, None
 
@@ -163,6 +169,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
     """
     aggregate_result = None
     eligibility_result = None
+    cohort_stats_result = None
     retrieved_urls: set[str] = set()
 
     try:
@@ -171,7 +178,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
         return (
             None, None,
             {"reply": FALLBACK_LLM_UNAVAILABLE, "recommendation": None},
-            None, None,
+            None, None, None,
         )
 
     recommendation: Recommendation | None = None
@@ -198,6 +205,8 @@ def _resolve_tools(messages: list[dict], chat_fn):
                     aggregate_result = extra["aggregate"]
                 if "eligibility" in extra:
                     eligibility_result = extra["eligibility"]
+                if "cohort_stats" in extra:
+                    cohort_stats_result = extra["cohort_stats"]
                 if "retrieved_urls" in extra:
                     retrieved_urls |= extra["retrieved_urls"]
 
@@ -229,7 +238,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
                         return (
                             None, None,
                             {"reply": FALLBACK_RECOMMENDATION_FAILED, "recommendation": None},
-                            aggregate_result, eligibility_result,
+                            aggregate_result, eligibility_result, cohort_stats_result,
                         )
 
             messages.append(
@@ -242,7 +251,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
             return (
                 None, None,
                 {"reply": FALLBACK_LLM_UNAVAILABLE, "recommendation": None},
-                aggregate_result, eligibility_result,
+                aggregate_result, eligibility_result, cohort_stats_result,
             )
 
         hops += 1
@@ -256,10 +265,10 @@ def _resolve_tools(messages: list[dict], chat_fn):
         return (
             None, None,
             {"reply": FALLBACK_TOO_MANY_TOOL_CALLS, "recommendation": None},
-            aggregate_result, eligibility_result,
+            aggregate_result, eligibility_result, cohort_stats_result,
         )
 
-    return response, recommendation, None, aggregate_result, eligibility_result
+    return response, recommendation, None, aggregate_result, eligibility_result, cohort_stats_result
 
 
 def _build_calculation(aggregate_result, eligibility_result):
@@ -271,6 +280,16 @@ def _build_calculation(aggregate_result, eligibility_result):
         "aggregate": aggregate_result.model_dump() if aggregate_result else None,
         "eligibility": eligibility_result.model_dump() if eligibility_result else None,
     }
+
+
+def _build_cohort_stats(cohort_stats_result):
+    """Packages the real analyze_outcomes result, or None if it didn't run
+    this turn. data_source is the mandatory synthetic-dataset caveat - see
+    docs/evaluation.md Failure 9 for why this is surfaced from code rather
+    than left to the model to repeat in its own reply."""
+    if cohort_stats_result is None:
+        return None
+    return cohort_stats_result.model_dump()
 
 
 def _drain(gen):
@@ -289,25 +308,34 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
     injectable so orchestration logic can be unit-tested without a running
     Ollama server (see tests/test_orchestrator.py).
 
-    Returns: {"reply": str, "recommendation": dict | None, "calculation": dict | None}
+    Returns: {"reply": str, "recommendation": dict | None, "calculation": dict | None,
+              "cohort_stats": dict | None}
     `calculation` carries the real compute_aggregate/check_eligibility
     results for this turn, independent of the model's own narration - see
-    docs/evaluation.md Failure 3 for why this exists.
+    docs/evaluation.md Failure 3 for why this exists. `cohort_stats` is the
+    same idea applied to analyze_outcomes (see Failure 9): its
+    `data_source` field is the mandatory "this is synthetic demonstration
+    data, not real" caveat, carried here from code so it's always present
+    in the response regardless of whether the model's own reply text
+    repeated it.
     """
     history = session_store.get_history(session_id)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history + [
         {"role": "user", "content": user_message}
     ]
 
-    final_response, recommendation, early_result, aggregate_result, eligibility_result = _drain(
-        _resolve_tools(messages, chat_fn)
-    )
+    (
+        final_response, recommendation, early_result,
+        aggregate_result, eligibility_result, cohort_stats_result,
+    ) = _drain(_resolve_tools(messages, chat_fn))
     calculation = _build_calculation(aggregate_result, eligibility_result)
+    cohort_stats = _build_cohort_stats(cohort_stats_result)
 
     if early_result is not None:
         session_store.append_message(session_id, "user", user_message)
         session_store.append_message(session_id, "assistant", early_result["reply"])
         early_result["calculation"] = calculation
+        early_result["cohort_stats"] = cohort_stats
         return early_result
 
     final_text = final_response["content"] or (
@@ -319,6 +347,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
 
     return {
         "reply": final_text,
+        "cohort_stats": cohort_stats,
         "recommendation": recommendation.model_dump() if recommendation else None,
         "calculation": calculation,
     }
@@ -334,11 +363,15 @@ def handle_turn_stream(
         {"type": "progress", "tool": str, "message": str}
         {"type": "token", "text": str}
         {"type": "error", "message": str, "calculation": dict | None}   - replaces "done" on failure
-        {"type": "done", "recommendation": dict | None, "calculation": dict | None}
+        {"type": "done", "recommendation": dict | None, "calculation": dict | None,
+         "cohort_stats": dict | None}
 
     `calculation` carries the real compute_aggregate/check_eligibility
     results for this turn (if either tool ran), independent of whatever the
     model said in its own reply - see docs/evaluation.md Failure 3.
+    `cohort_stats` is the same idea for analyze_outcomes (Failure 9): its
+    `data_source` field is the mandatory synthetic-data caveat, carried from
+    code so it reaches the response even if the model's streamed text drops it.
 
     `chat_fn` drives the (non-streaming) tool-decision rounds; `stream_fn`
     drives the genuinely-streamed final answer once no more tools are
@@ -356,14 +389,20 @@ def handle_turn_stream(
     except StopIteration as stop:
         (
             final_response, recommendation, early_result,
-            aggregate_result, eligibility_result,
+            aggregate_result, eligibility_result, cohort_stats_result,
         ) = stop.value
     calculation = _build_calculation(aggregate_result, eligibility_result)
+    cohort_stats = _build_cohort_stats(cohort_stats_result)
 
     if early_result is not None:
         session_store.append_message(session_id, "user", user_message)
         session_store.append_message(session_id, "assistant", early_result["reply"])
-        yield {"type": "error", "message": early_result["reply"], "calculation": calculation}
+        yield {
+            "type": "error",
+            "message": early_result["reply"],
+            "calculation": calculation,
+            "cohort_stats": cohort_stats,
+        }
         return
 
     if recommendation is not None and not (final_response and final_response["content"]):
@@ -390,4 +429,5 @@ def handle_turn_stream(
         "type": "done",
         "recommendation": recommendation.model_dump() if recommendation else None,
         "calculation": calculation,
+        "cohort_stats": cohort_stats,
     }

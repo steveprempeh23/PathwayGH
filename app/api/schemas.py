@@ -2,6 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.models.analysis import CohortStats
 from app.models.eligibility import EligibilityResult
 from app.models.grading import AggregateResult, GradeInput
 from app.models.recommendation import Recommendation
@@ -42,6 +43,15 @@ class ChatResponse(BaseModel):
     reply: str
     recommendation: Optional[Recommendation] = None
     calculation: Optional[CalculationBundle] = None
+    cohort_stats: Optional[CohortStats] = None
+    """The real analyze_outcomes result for this turn, if it ran - see
+    docs/evaluation.md Failure 9. Without this field, FastAPI's
+    response_model would silently strip cohort_stats from
+    orchestrator.handle_turn()'s return dict, which would have made the
+    Failure-9 fix invisible to the actual API response even though the
+    orchestrator computed it correctly - the same class of bug the fix
+    itself is about (real data getting lost before it reaches the user).
+    """
 
 
 class CalculateRequest(BaseModel):

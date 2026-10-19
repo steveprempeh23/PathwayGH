@@ -83,4 +83,47 @@ def test_institutions_example_populated_from_real_sourced_data():
 def test_every_category_present_in_result():
     result = check_eligibility(aggregate=20, track="general", electives={})
     categories = {m.category for m in result.matches}
-    assert len(categories) == 7
+    assert len(categories) == 8
+
+
+def test_physician_assistantship_eligible_with_right_electives_and_c6_grades():
+    """C6 (an ordinary credit pass) is enough for Physician Assistantship -
+    deliberately less competitive than Medicine/Dentistry's B3 minimum,
+    even though both categories require the same three electives. This is
+    the actual, sourced distinction (see programmes.json's
+    _physician_assistantship_note), not a copy of the Medicine test."""
+    result = check_eligibility(
+        aggregate=20,
+        track="science",
+        electives={"Biology": "C6", "Chemistry": "C6", "Physics": "C6"},
+    )
+    pa = next(m for m in result.matches if "Physician Assistantship" in m.category)
+    assert pa.aggregate_eligible is True
+    assert pa.electives_match is True
+    assert pa.overall_eligible is True
+
+
+def test_physician_assistantship_same_grades_fail_medicine_but_pass_pa():
+    """Same student, same subjects, same aggregate: fails Medicine's B3
+    elective floor but clears Physician Assistantship's C6 floor - the
+    whole point of giving them different elective_min_grade values."""
+    result = check_eligibility(
+        aggregate=9,
+        track="science",
+        electives={"Biology": "C6", "Chemistry": "C6", "Physics": "C6"},
+    )
+    medicine = next(m for m in result.matches if m.category == "Medicine / Dentistry")
+    pa = next(m for m in result.matches if "Physician Assistantship" in m.category)
+    assert medicine.electives_match is False
+    assert pa.electives_match is True
+
+
+def test_physician_assistantship_institutions_example_is_real_sourced_public_universities():
+    result = check_eligibility(
+        aggregate=12,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B2", "Physics": "B2"},
+    )
+    pa = next(m for m in result.matches if "Physician Assistantship" in m.category)
+    assert "UHAS" in pa.institutions_example
+    assert len(pa.institutions_example) > 0

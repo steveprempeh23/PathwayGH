@@ -5,7 +5,7 @@ from app.tools.data_analysis import analyze_outcomes
 
 def test_unfiltered_summary_covers_whole_dataset():
     stats = analyze_outcomes()
-    assert stats.sample_size == 420  # 5 years * 7 categories * 12 students
+    assert stats.sample_size == 480  # 5 years * 8 categories * 12 students
     assert stats.min_aggregate <= stats.mean_aggregate <= stats.max_aggregate
     assert "synthetically generated" in stats.data_source
 

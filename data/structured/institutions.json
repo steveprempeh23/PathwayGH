@@ -1,0 +1,930 @@
+{
+  "_source": "Compiled from named, publicly accessible GES-category listings (Wikipedia school articles stating their GES category, and YEN.com.gh / GhResults.com GES-category-by-region listings). See each entry's source_url.",
+  "_retrieved": "2026-10-18",
+  "_coverage_note": "This file covers 12 of Ghana's 16 regions with real, named, sourced schools. Western North, Oti, Savannah and North East regions have NO entries yet - not because such schools don't exist, but because a citable, named category-list source for them wasn't found and located in the time available for this pass. Do not treat a region's absence here as 'no schools there' - treat it as 'not yet sourced', and add it the same way the other regions were added (see docs/extending-data.md). Category letters (A/B/C) are GES's school-resourcing tier, not a measure of exam performance, and several of the Category-C entries here have the generic '/Tech' or '/Community' name exactly as published in the source list because no fuller official name was found; treat those as lower-confidence on the precise spelling. No programme offerings, no aggregate cutoffs, and no school-specific admission data are included for any school below - per docs/extending-data.md, that is real sourcing work still to be done, not something to guess at here.",
+  "_schema_note": "ges_category is GES's own A/B/C resourcing tier, sourced per entry - never invented. This file deliberately has no programme-offerings field and no cutoff/aggregate field per school: those would need real, school-specific sourcing that has not been done (see docs/extending-data.md, 'Adding real per-school data'). Optional fields (gender, town, accommodation) are included only where the source actually stated them.",
+  "schools": [
+    {
+      "name": "Accra Academy",
+      "region": "Greater Accra",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "boys"
+    },
+    {
+      "name": "Accra Girls Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Accra_Girls_Senior_High_School",
+      "gender": "girls",
+      "town": "North Ridge, Accra"
+    },
+    {
+      "name": "Achimota School",
+      "region": "Greater Accra",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "mixed"
+    },
+    {
+      "name": "Presbyterian Boys' Senior High School (PRESEC Legon)",
+      "region": "Greater Accra",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "boys"
+    },
+    {
+      "name": "St. Thomas Aquinas Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/"
+    },
+    {
+      "name": "Tema Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Tema"
+    },
+    {
+      "name": "St. Mary's Senior High School, Korle Gonno",
+      "region": "Greater Accra",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Korle Gonno"
+    },
+    {
+      "name": "Ada Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Ada-Foah",
+      "accommodation": "Day & Boarding"
+    },
+    {
+      "name": "Odorgonno Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Awoshie"
+    },
+    {
+      "name": "Ghanata Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Dodowa"
+    },
+    {
+      "name": "Labone Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Labone"
+    },
+    {
+      "name": "Nungua Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Nungua"
+    },
+    {
+      "name": "Ningo Senior High Technical School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Old Ningo"
+    },
+    {
+      "name": "Chemu Senior High Technical School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Tema Community 4"
+    },
+    {
+      "name": "Our Lady of Mercy Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Tema Community 4"
+    },
+    {
+      "name": "St. John's Grammar Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Achimota"
+    },
+    {
+      "name": "West Africa Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Adenta"
+    },
+    {
+      "name": "St. Margaret Mary Senior High Technical School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Dansoman"
+    },
+    {
+      "name": "Wesley Grammar Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "Dansoman"
+    },
+    {
+      "name": "Sacred Heart Technical Institute",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/183642-list-category-b-schools-greater-accra-region.html",
+      "town": "James Town"
+    },
+    {
+      "name": "Accra High School",
+      "region": "Greater Accra",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Accra_High_School",
+      "town": "North Ridge, Accra"
+    },
+    {
+      "name": "Ashaiman Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Ashaiman_Senior_High_School",
+      "gender": "mixed",
+      "town": "Ashaiman"
+    },
+    {
+      "name": "Ada Senior High/Tech",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Adjen Kotoku Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Adjen Kotoku"
+    },
+    {
+      "name": "Amasaman Senior High/Tech",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Amasaman"
+    },
+    {
+      "name": "Christian Methodist Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Ebenezer Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Forces Senior High/Tech, Burma Camp",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Burma Camp"
+    },
+    {
+      "name": "Frafraha Community Senior High School",
+      "region": "Greater Accra",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Frafraha"
+    },
+    {
+      "name": "Prempeh College",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "gender": "boys",
+      "town": "Kumasi"
+    },
+    {
+      "name": "Opoku Ware School",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "gender": "boys",
+      "town": "Kumasi"
+    },
+    {
+      "name": "Kumasi High School (KUHIS)",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Kumasi_High_School",
+      "gender": "boys",
+      "town": "Gyinyase, Kumasi"
+    },
+    {
+      "name": "St. Louis Senior High School",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "gender": "girls",
+      "town": "Kumasi"
+    },
+    {
+      "name": "T.I. Ahmadiyya Senior High School",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "town": "Kumasi"
+    },
+    {
+      "name": "Yaa Asantewaa Girls' Senior High School",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "gender": "girls",
+      "town": "Kumasi"
+    },
+    {
+      "name": "Bosomtwe Girls STEM Senior High School",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "gender": "girls",
+      "town": "Deduako"
+    },
+    {
+      "name": "Bosomtwe STEM SHS and Academy",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "town": "Jachie Town"
+    },
+    {
+      "name": "Konongo Odumase Senior High School",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180260-list-category-a-schools-ashanti-region-ghana.html",
+      "town": "Konongo"
+    },
+    {
+      "name": "Asanteman Senior High School",
+      "region": "Ashanti",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Asanteman_Senior_High_School",
+      "town": "Kumasi"
+    },
+    {
+      "name": "Kumasi Academy (KUMACA)",
+      "region": "Ashanti",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Kumasi_Academy",
+      "town": "Asokore-Mampong, Kumasi"
+    },
+    {
+      "name": "Barekese Senior High School (BASEC)",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Barekese_Senior_High_School",
+      "gender": "mixed",
+      "town": "Barekese"
+    },
+    {
+      "name": "Owerriman Senior High School",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Parkoso Community Senior High School",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Pentecost Senior High School, Kumasi",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Kumasi"
+    },
+    {
+      "name": "Presbyterian Senior High/Tech, Kwamang",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Kwamang"
+    },
+    {
+      "name": "Simms Senior High/Community School",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "St. George's Senior High Technical School",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "St. Joseph Seminary Senior High, Mampong",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Mampong"
+    },
+    {
+      "name": "St. Sebastian Catholic Senior High School",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Tijjaniya Senior High School",
+      "region": "Ashanti",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Adisadel College",
+      "region": "Central",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "boys",
+      "town": "Cape Coast"
+    },
+    {
+      "name": "Mfantsipim School",
+      "region": "Central",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "boys",
+      "town": "Cape Coast"
+    },
+    {
+      "name": "Wesley Girls' High School",
+      "region": "Central",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "girls",
+      "town": "Cape Coast"
+    },
+    {
+      "name": "Holy Child School",
+      "region": "Central",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "girls",
+      "town": "Cape Coast"
+    },
+    {
+      "name": "St. Augustine's College",
+      "region": "Central",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "boys",
+      "town": "Cape Coast"
+    },
+    {
+      "name": "Mfantsiman Girls Senior High School",
+      "region": "Central",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "girls"
+    },
+    {
+      "name": "Boa Amponsem Senior High School",
+      "region": "Central",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Boa_Amponsem_Senior_High_School",
+      "gender": "mixed",
+      "town": "Dunkwa-on-Offin"
+    },
+    {
+      "name": "Assin North Senior High/Technical School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Assin_North_Senior_High_School",
+      "gender": "mixed",
+      "town": "Assin Asempaneye"
+    },
+    {
+      "name": "Aburaman Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Agona Fankobaa Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Agona"
+    },
+    {
+      "name": "Assin Manso Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Assin Manso"
+    },
+    {
+      "name": "Gomoa Gyaman Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Gomoa"
+    },
+    {
+      "name": "Gomoa Senior High/Tech",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Gomoa"
+    },
+    {
+      "name": "Gyaase Community Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "J.E.A. Mills Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Jukwa Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Jukwa"
+    },
+    {
+      "name": "Komenda Senior High/Tech",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Komenda"
+    },
+    {
+      "name": "Kwanyako Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Kwanyako"
+    },
+    {
+      "name": "Kwegyir Aggrey Senior High School",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Mando Senior High/Tech",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Mando"
+    },
+    {
+      "name": "Mankessim Senior High/Tech",
+      "region": "Central",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Mankessim"
+    },
+    {
+      "name": "Archbishop Porter Girls' Senior High School",
+      "region": "Western",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "girls",
+      "town": "Takoradi"
+    },
+    {
+      "name": "Sekondi College",
+      "region": "Western",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Sekondi"
+    },
+    {
+      "name": "Fijai Senior High School",
+      "region": "Western",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Takoradi"
+    },
+    {
+      "name": "St. John's Senior High School, Sekondi",
+      "region": "Western",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Sekondi"
+    },
+    {
+      "name": "Half Assini Senior High School (HASCO)",
+      "region": "Western",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Half_Assini_Senior_High_School",
+      "gender": "mixed",
+      "town": "Half Assini"
+    },
+    {
+      "name": "Okuapeman Senior High School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Akropong"
+    },
+    {
+      "name": "St. Paul's Technical Institute",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Kukurantumi"
+    },
+    {
+      "name": "St. Peter's Senior High School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Nkwatia"
+    },
+    {
+      "name": "St. Rose's Senior High School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Akwatia"
+    },
+    {
+      "name": "Pope John Senior High School & Minor Seminary",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Koforidua"
+    },
+    {
+      "name": "Aburi Girls' Senior High School (ABUGISS)",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "gender": "girls",
+      "town": "Aburi"
+    },
+    {
+      "name": "Akwatia Technical Institute",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Akwatia"
+    },
+    {
+      "name": "Ghana Senior High School, Koforidua",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Koforidua"
+    },
+    {
+      "name": "Koforidua Senior High Technical School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "town": "Koforidua"
+    },
+    {
+      "name": "Krobo Girls' Presbyterian Senior High School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html",
+      "gender": "girls",
+      "town": "Krobo Odumasi"
+    },
+    {
+      "name": "Ofori Panin Senior High School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/180261-list-senior-high-schools-eastern-region-ghana.html"
+    },
+    {
+      "name": "Abetifi Kyemase Technical Institute",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Abetifi"
+    },
+    {
+      "name": "Abomosu STEM Senior High School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Abomosu"
+    },
+    {
+      "name": "Benkum Senior High School",
+      "region": "Eastern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Benkum_Senior_High_School",
+      "gender": "mixed",
+      "town": "Larteh Akuapem"
+    },
+    {
+      "name": "Adonten Senior High School",
+      "region": "Eastern",
+      "ges_category": "B",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Adonten_Senior_High_School",
+      "gender": "mixed",
+      "town": "Aburi"
+    },
+    {
+      "name": "Mawuli School",
+      "region": "Volta",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Ho"
+    },
+    {
+      "name": "OLA Girls Senior High School, Ho",
+      "region": "Volta",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "girls",
+      "town": "Ho"
+    },
+    {
+      "name": "Bishop Herman College",
+      "region": "Volta",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "boys",
+      "town": "Kpando"
+    },
+    {
+      "name": "Anlo Technical Institute",
+      "region": "Volta",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/110887-list-technical-schools-ghana.html",
+      "accommodation": "Day/Boarding"
+    },
+    {
+      "name": "Kpando Technical Institute",
+      "region": "Volta",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/110887-list-technical-schools-ghana.html",
+      "town": "Kpando",
+      "accommodation": "Day/Boarding"
+    },
+    {
+      "name": "Tamale Senior High School",
+      "region": "Northern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Tamale"
+    },
+    {
+      "name": "Ghana Senior High School, Tamale",
+      "region": "Northern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Tamale"
+    },
+    {
+      "name": "St. Charles Senior High School",
+      "region": "Northern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/"
+    },
+    {
+      "name": "Dabokpa Vocational and Technical Institute",
+      "region": "Northern",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/110887-list-technical-schools-ghana.html",
+      "accommodation": "Day/Boarding"
+    },
+    {
+      "name": "Navrongo Senior High School",
+      "region": "Upper East",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "town": "Navrongo"
+    },
+    {
+      "name": "Bolgatanga Senior High School",
+      "region": "Upper East",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://en.wikipedia.org/wiki/Bolgatanga_Senior_High_School",
+      "gender": "mixed",
+      "town": "Winkogo, Bolgatanga"
+    },
+    {
+      "name": "Notre Dame Seminary Senior High School",
+      "region": "Upper East",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/"
+    },
+    {
+      "name": "Bawku Technical Institute",
+      "region": "Upper East",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/110887-list-technical-schools-ghana.html",
+      "accommodation": "Day/Boarding"
+    },
+    {
+      "name": "Bolga Technical Institute",
+      "region": "Upper East",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/110887-list-technical-schools-ghana.html",
+      "accommodation": "Day/Boarding"
+    },
+    {
+      "name": "St. Francis Girls' Senior High School",
+      "region": "Upper West",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://ghresults.com/category-a-shs-in-ghana/",
+      "gender": "girls"
+    },
+    {
+      "name": "Bechem Presbyterian Senior High School",
+      "region": "Ahafo",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Bechem"
+    },
+    {
+      "name": "Kukuom Agric Senior High School",
+      "region": "Ahafo",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Kukuom"
+    },
+    {
+      "name": "Sankore Senior High School",
+      "region": "Ahafo",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Sankore"
+    },
+    {
+      "name": "Chiraa Senior High School",
+      "region": "Bono",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Chiraa"
+    },
+    {
+      "name": "Nkyeraa Senior High School",
+      "region": "Bono",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html"
+    },
+    {
+      "name": "Salvation Army Senior High School, Aboabo Dormaa",
+      "region": "Bono",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Aboabo Dormaa"
+    },
+    {
+      "name": "St. Augustine Senior High School, Nsapor-Berekum",
+      "region": "Bono",
+      "ges_category": "C",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/186938-list-category-c-schools-ghana-by-region.html",
+      "town": "Nsapor-Berekum"
+    },
+    {
+      "name": "Nkoranza Technical Institute",
+      "region": "Bono East",
+      "ges_category": "A",
+      "confidence": "sourced_category_list",
+      "source_url": "https://yen.com.gh/110887-list-technical-schools-ghana.html",
+      "town": "Nkoranza",
+      "accommodation": "Day/Boarding"
+    }
+  ]
+}
