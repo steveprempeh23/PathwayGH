@@ -99,6 +99,35 @@ ANALYZE_OUTCOMES_TOOL = {
     },
 }
 
+LIST_INSTITUTIONS_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "list_institutions",
+        "description": (
+            "Get the REAL, sourced example institutions for one programme "
+            "category, copied verbatim from programmes.json. ALWAYS call this "
+            "when asked 'which schools', 'list eligible schools', or similar - "
+            "even if you believe you remember the institutions from an earlier "
+            "'Aggregate:' table in this conversation. You have been observed, "
+            "live, inventing institutions (e.g. naming University of Ghana, UCC, "
+            "KNUST for a category whose real list is only UHAS and UDS) when "
+            "answering from memory instead of calling this tool - see "
+            "docs/evaluation.md Failure 12. Never name an institution that this "
+            "tool did not return for that category."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "programme_category": {
+                    "type": "string",
+                    "description": "Exact category name, e.g. 'Physician Assistantship / Allied Health'",
+                },
+            },
+            "required": ["programme_category"],
+        },
+    },
+}
+
 SUBMIT_RECOMMENDATION_TOOL = {
     "type": "function",
     "function": {
@@ -131,5 +160,6 @@ SUBMIT_RECOMMENDATION_TOOL = {
 ALL_TOOLS = [
     RETRIEVE_CONTEXT_TOOL,
     ANALYZE_OUTCOMES_TOOL,
+    LIST_INSTITUTIONS_TOOL,
     SUBMIT_RECOMMENDATION_TOOL,
 ]

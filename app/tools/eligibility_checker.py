@@ -99,7 +99,16 @@ def check_eligibility(
 
     for prog in _PROGRAMMES:
         band = prog["aggregate_band"]
-        aggregate_eligible = band["best"] <= aggregate <= band["worst"]
+        # WASSCE aggregates run lower-is-better. `best` is the most
+        # competitive cutoff actually observed/estimated for this category,
+        # `worst` the least competitive - the band is the RANGE of cutoffs
+        # seen across institutions in the category, not a floor a student
+        # must clear from below. A student whose aggregate is better than
+        # even the most competitive cutoff in the category (aggregate <
+        # best) clears every real cutoff in it and must be eligible, not
+        # excluded - see docs/evaluation.md Failure 11 for the live case
+        # that exposed this (aggregate 6 marked ineligible for a 9-24 band).
+        aggregate_eligible = aggregate <= band["worst"]
 
         electives_match = _check_electives(
             prog["required_electives"], electives, prog["elective_min_grade"]
@@ -121,9 +130,9 @@ def check_eligibility(
             elective_note = "elective subjects/grades do NOT satisfy this category's requirement"
 
         reason = (
-            f"Aggregate {aggregate} is {'within' if aggregate_eligible else 'outside'} the "
-            f"{prog['confidence']} band ({band['best']}-{band['worst']}) for "
-            f"{prog['category']}; {elective_note}."
+            f"Aggregate {aggregate} {'meets' if aggregate_eligible else 'does not meet'} "
+            f"the {prog['confidence']} band ({band['best']}-{band['worst']}) for "
+            f"{prog['category']} (aggregate must be {band['worst']} or better); {elective_note}."
         )
 
         matches.append(

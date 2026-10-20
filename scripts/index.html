@@ -546,6 +546,32 @@ function renderCohortStatsCard(stats) {
   log.scrollTop = log.scrollHeight;
 }
 
+function renderInstitutionsLookupCard(lookup) {
+  // Deterministic rendering of list_institutions - independent of whatever
+  // the model's own reply text named. Added after a live run showed the
+  // chat model naming four extra institutions (University of Ghana, UCC,
+  // KNUST, UMaT) that were never in the real institutions_example list for
+  // the category it was asked about (see docs/evaluation.md Failure 12).
+  // Same reasoning as the calculation card (Failure 3) and the cohort
+  // stats card (Failure 9): render the real tool output, not the model's
+  // retelling of it.
+  const list = lookup.institutions_example.length
+    ? lookup.institutions_example.map((name) => `<li>${escapeHtml(name)}</li>`).join("")
+    : "<li>No institutions on file yet for this category.</li>";
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.innerHTML = `
+    <h3>Real institutions on file: ${escapeHtml(lookup.category)}</h3>
+    <ul style="margin:4px 0 0 18px;font-size:12px;">${list}</ul>
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+      Confidence: ${escapeHtml(lookup.confidence)} &middot; illustrative examples, not a complete or guaranteed list of where you'd be admitted.
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
 document.getElementById("calcSubmit").addEventListener("click", async () => {
   const chosenSubjects = [];
   const electives = {};
@@ -718,6 +744,7 @@ form.addEventListener("submit", async (e) => {
     let recommendation = null;
     let calculation = null;
     let cohortStats = null;
+    let institutionsLookup = null;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -749,6 +776,7 @@ form.addEventListener("submit", async (e) => {
           recommendation = event.recommendation;
           calculation = event.calculation;
           cohortStats = event.cohort_stats;
+          institutionsLookup = event.institutions_lookup;
         }
       }
     }
@@ -767,6 +795,9 @@ form.addEventListener("submit", async (e) => {
     }
     if (cohortStats) {
       renderCohortStatsCard(cohortStats);
+    }
+    if (institutionsLookup) {
+      renderInstitutionsLookupCard(institutionsLookup);
     }
   } catch (err) {
     liveBubble.remove();

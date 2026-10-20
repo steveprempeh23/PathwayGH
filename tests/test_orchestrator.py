@@ -261,6 +261,49 @@ def test_cohort_stats_carries_synthetic_caveat_even_when_model_narration_drops_i
     assert "synthetic" in result["cohort_stats"]["data_source"].lower()
 
 
+def test_institutions_lookup_carries_real_list_even_when_model_narration_invents_others():
+    """Regression test for Failure 12 (docs/evaluation.md): a live model
+    call, asked which schools it's eligible for in Physician Assistantship
+    / Allied Health (real institutions_example: ['UHAS', 'UDS']), invented
+    four extra institutions (University of Ghana, UCC, KNUST, UMaT) that
+    aren't in that list at all. The fix (mirroring Failure 3's and Failure
+    9's fix) is that result['institutions_lookup']['institutions_example']
+    must carry the real list from code, independent of whatever the
+    model's own reply text says or adds.
+    """
+    fake = FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {
+                        "name": "list_institutions",
+                        "arguments": {"programme_category": "Physician Assistantship / Allied Health"},
+                    }
+                ]
+            ),
+            # Deliberately invents institutions beyond the real list -
+            # exactly what the live model did.
+            _assistant(
+                content=(
+                    "You're eligible at University of Ghana, UCC, UDS, UHAS, "
+                    "KNUST, and UMaT."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn(
+        "session-institutions", "schools i am eligible for physician assistantship", chat_fn=fake
+    )
+
+    # The model's text can invent extra institutions...
+    assert "KNUST" in result["reply"]
+    # ...but institutions_lookup must carry only the real, sourced list.
+    assert result["institutions_lookup"] is not None
+    assert result["institutions_lookup"]["institutions_example"] == ["UHAS", "UDS"]
+    assert "KNUST" not in result["institutions_lookup"]["institutions_example"]
+
+
 def test_analyze_outcomes_unknown_category_error_fed_back_not_raised():
     fake = FakeChat(
         [

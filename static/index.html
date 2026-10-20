@@ -514,6 +514,64 @@ function renderCalcResultCard(data) {
   log.scrollTop = log.scrollHeight;
 }
 
+function renderCohortStatsCard(stats) {
+  // Deterministic rendering of analyze_outcomes - independent of whatever
+  // the model's own reply text did or didn't say. Added after a live run
+  // showed the chat model stating a bare percentage with no mention that
+  // the underlying dataset is synthetic demonstration data, dropping a
+  // caveat the system prompt requires every time (see docs/evaluation.md
+  // Failure 9). Mirrors the existing Failure-3 fix for calculation
+  // results: don't trust the model's retelling for the thing that matters.
+  const filterLabel = [stats.filter_programme_category, stats.filter_track]
+    .filter(Boolean)
+    .map(escapeHtml)
+    .join(" / ") || "All categories";
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.innerHTML = `
+    <h3>Cohort statistics: ${filterLabel}</h3>
+    <div style="font-size:12px;">
+      Sample size: ${stats.sample_size} &middot;
+      Mean aggregate: ${stats.mean_aggregate} &middot;
+      Median: ${stats.median_aggregate} &middot;
+      Range: ${stats.min_aggregate}-${stats.max_aggregate} &middot;
+      Admission rate: ${stats.admission_rate_percent}%
+    </div>
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;font-weight:600;">
+      ${escapeHtml(stats.data_source)}
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
+function renderInstitutionsLookupCard(lookup) {
+  // Deterministic rendering of list_institutions - independent of whatever
+  // the model's own reply text named. Added after a live run showed the
+  // chat model naming four extra institutions (University of Ghana, UCC,
+  // KNUST, UMaT) that were never in the real institutions_example list for
+  // the category it was asked about (see docs/evaluation.md Failure 12).
+  // Same reasoning as the calculation card (Failure 3) and the cohort
+  // stats card (Failure 9): render the real tool output, not the model's
+  // retelling of it.
+  const list = lookup.institutions_example.length
+    ? lookup.institutions_example.map((name) => `<li>${escapeHtml(name)}</li>`).join("")
+    : "<li>No institutions on file yet for this category.</li>";
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.innerHTML = `
+    <h3>Real institutions on file: ${escapeHtml(lookup.category)}</h3>
+    <ul style="margin:4px 0 0 18px;font-size:12px;">${list}</ul>
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+      Confidence: ${escapeHtml(lookup.confidence)} &middot; illustrative examples, not a complete or guaranteed list of where you'd be admitted.
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
 document.getElementById("calcSubmit").addEventListener("click", async () => {
   const chosenSubjects = [];
   const electives = {};
@@ -685,6 +743,8 @@ form.addEventListener("submit", async (e) => {
     let buffer = "";
     let recommendation = null;
     let calculation = null;
+    let cohortStats = null;
+    let institutionsLookup = null;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -715,6 +775,8 @@ form.addEventListener("submit", async (e) => {
         } else if (event.type === "done") {
           recommendation = event.recommendation;
           calculation = event.calculation;
+          cohortStats = event.cohort_stats;
+          institutionsLookup = event.institutions_lookup;
         }
       }
     }
@@ -730,6 +792,12 @@ form.addEventListener("submit", async (e) => {
       // docs/evaluation.md Failure 3). Same card the no-LLM /calculate
       // button uses, so the ground truth looks identical either way.
       renderCalcResultCard(calculation);
+    }
+    if (cohortStats) {
+      renderCohortStatsCard(cohortStats);
+    }
+    if (institutionsLookup) {
+      renderInstitutionsLookupCard(institutionsLookup);
     }
   } catch (err) {
     liveBubble.remove();

@@ -63,6 +63,7 @@ def check_tool_schemas_match_models():
     assert names == {
         "retrieve_context",
         "analyze_outcomes",
+        "list_institutions",
         "submit_recommendation",
     }, f"unexpected tool set: {names}"
 

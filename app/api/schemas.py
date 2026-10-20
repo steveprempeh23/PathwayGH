@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.models.analysis import CohortStats
 from app.models.eligibility import EligibilityResult
+from app.models.institutions import InstitutionsLookup
 from app.models.grading import AggregateResult, GradeInput
 from app.models.recommendation import Recommendation
 
@@ -52,6 +53,12 @@ class ChatResponse(BaseModel):
     orchestrator computed it correctly - the same class of bug the fix
     itself is about (real data getting lost before it reaches the user).
     """
+    institutions_lookup: Optional[InstitutionsLookup] = None
+    """The real list_institutions result for this turn, if it ran - see
+    docs/evaluation.md Failure 12 (model fabricated institutions that
+    weren't in the real institutions_example list for the category it was
+    asked about). Same reasoning as cohort_stats above for why this needs
+    its own schema field rather than being left implicit."""
 
 
 class CalculateRequest(BaseModel):

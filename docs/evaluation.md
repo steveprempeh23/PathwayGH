@@ -509,6 +509,107 @@ that the requested programme name (e.g. extracted from the user's own
 message) matches the category actually queried. Left as a known gap, not
 claimed as fixed.
 
+### Failure 11: "too good" an aggregate wrongly marked ineligible (real logic bug, not an LLM failure)
+
+**What happened:** a student with aggregate 6 (an excellent WASSCE result -
+lower is better in this system) was marked "Not eligible" for Physician
+Assistantship / Allied Health, whose `aggregate_band` is `{best: 9, worst:
+24}`. `app/tools/eligibility_checker.py`'s check was
+`band["best"] <= aggregate <= band["worst"]` - a two-sided range check. But
+`aggregate_band` represents the RANGE of real cutoffs observed across
+institutions in a category, not a floor a student must clear from below:
+`best` is the most competitive (lowest) cutoff seen, `worst` the least
+competitive (highest). A student whose aggregate is better than even the
+most competitive cutoff in the category clears every real cutoff in it and
+must be eligible - there's no such thing as "too good" an aggregate in
+WASSCE admissions.
+
+**Why this stayed hidden until now:** every other category's test coverage
+happened to use an aggregate at or above that category's `best` (e.g.
+Medicine's existing test uses aggregate 8, inside its 6-10 band). Physician
+Assistantship (`best`=9) was the first category whose `best` sat above a
+commonly-tested low aggregate, which is what exposed it live.
+
+**Fix:** `aggregate_eligible = aggregate <= band["worst"]` - drop the lower
+bound entirely. Verified with
+`test_aggregate_better_than_bands_best_is_still_eligible` and
+`test_aggregate_worse_than_bands_worst_is_ineligible` in
+`tests/test_eligibility_checker.py`.
+
+**Not touched on purpose:** `scripts/generate_synthetic_outcomes.py` uses
+the same two-sided-range idea to decide its synthetic admission flag, but
+deliberately so - it needs students sampled on both sides of the band to
+produce a realistic-looking distribution for Question 9's demo, and its own
+docstring already states this is an arbitrary illustrative model, not a
+claim about real eligibility rules. Only the real eligibility-determining
+code path in `eligibility_checker.py` was wrong; the synthetic generator's
+design choice is unrelated and was left alone.
+
+### Failure 12: fabricated institutions beyond the real sourced list (observed live, Oct 2026)
+
+**What happened:** a student asked "schools i am eligible for physician
+assisantship". The real `institutions_example` for that category in
+`programmes.json` is `["UHAS", "UDS"]` - two institutions. The model
+answered with six: "University of Ghana (example institution), UCC, UDS,
+UHAS, KNUST, UMaT". Four of those six were never in the real data for this
+category at all.
+
+**Why this happened despite Failure 7's existing prompt rule:** Failure 7
+was "fixed" with a prompt instruction only (rule 5b: "NEVER name specific
+schools... direct them back to those results... rather than inventing a
+list yourself") - it never got the code-level enforcement that Failures 3,
+9, and 11 all eventually needed. The chat model also had no tool that could
+return `institutions_example` for a category; its only source for that data
+was recalling/paraphrasing the "Aggregate:" table text injected into
+conversation history several turns earlier (see Failure 8). A small local
+model recalling a six-row table from several turns back, then quietly
+padding it with plausible-sounding Ghanaian university names, is exactly
+the failure mode the rest of this document already predicts for anything
+left to model memory instead of a tool call.
+
+**Fix, finally matching the code-level pattern the other failures needed:**
+1. New tool `list_institutions` (`app/tools/programme_lookup.py`,
+   `app/models/institutions.py`) - a deterministic, zero-LLM lookup that
+   returns a category's real `institutions_example` copied verbatim from
+   `programmes.json`. Added to `ALL_TOOLS`
+   (`app/llm/tool_schemas.py`) so the chat model can actually call it.
+2. `system_prompt.py` rules 5b/5c rewritten to instruct the model to call
+   `list_institutions` for any "which schools" question - explicitly
+   naming this live failure as the reason, and explicitly forbidding
+   answering from memory of the earlier table even if the model believes
+   it remembers correctly.
+3. **The part that actually holds regardless of prompt compliance**
+   (matching Failures 3/9/11): `_execute_tool` returns the real
+   `InstitutionsLookup` object as `extra["institutions_lookup"]`, threaded
+   through `_resolve_tools` exactly like `aggregate_result`/
+   `eligibility_result`/`cohort_stats_result`, surfaced as an
+   `institutions_lookup` field on `handle_turn`'s return dict and
+   `handle_turn_stream`'s `"done"`/`"error"` events, added to
+   `ChatResponse` in `app/api/schemas.py` (same FastAPI-silently-strips-it
+   trap as Failure 9), and rendered as its own card in
+   `static/index.html` - independent of whatever the model's own text
+   says or adds.
+
+Verified with
+`test_institutions_lookup_carries_real_list_even_when_model_narration_invents_others`
+(`tests/test_orchestrator.py`): a fake model's reply text names six
+institutions including four fabricated ones - the test asserts the model's
+own text does contain the fabrication, then asserts
+`result["institutions_lookup"]["institutions_example"]` is exactly
+`["UHAS", "UDS"]` regardless.
+
+**What this doesn't fix:** nothing code-level stops the model's own reply
+*text* from still naming extra institutions beyond what `list_institutions`
+returned - there's no practical way to constrain free-form natural-language
+output to only the words a tool call returned (the same honest gap already
+noted in Failure 9's writeup). Giving the model a real tool and an explicit
+instruction to use it makes the correct path easier and more available than
+before, which should reduce this live model's tendency to pad from memory,
+but it is not a guarantee for a small local model, and the regression test
+above only proves the *deterministic field* is correct - it deliberately
+does not (and cannot) assert the model's own prose is free of invented
+names.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

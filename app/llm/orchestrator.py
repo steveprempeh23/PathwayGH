@@ -34,6 +34,7 @@ from app.rag import retriever as rag_retriever
 from app.tools.aggregate_calculator import compute_aggregate
 from app.tools.data_analysis import analyze_outcomes
 from app.tools.eligibility_checker import check_eligibility
+from app.tools.programme_lookup import lookup_institutions
 
 MAX_TOOL_HOPS = 5
 MAX_RECOMMENDATION_ATTEMPTS = 2  # original attempt + one repair retry
@@ -57,6 +58,7 @@ PROGRESS_LABELS = {
     "check_eligibility": "Checking programme eligibility...",
     "retrieve_context": "Searching the admission guide...",
     "analyze_outcomes": "Crunching cohort statistics...",
+    "list_institutions": "Looking up real institutions for this category...",
     "submit_recommendation": "Preparing your recommendation...",
 }
 
@@ -133,6 +135,13 @@ def _execute_tool(name: str, arguments: dict):
         except ValueError as exc:
             return json.dumps({"error": str(exc)}), None, None
 
+    if name == "list_institutions":
+        try:
+            result = lookup_institutions(arguments.get("programme_category"))
+            return result.model_dump_json(), None, {"institutions_lookup": result}
+        except ValueError as exc:
+            return json.dumps({"error": str(exc)}), None, None
+
     if name == "submit_recommendation":
         try:
             recommendation = Recommendation(**arguments)
@@ -170,6 +179,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
     aggregate_result = None
     eligibility_result = None
     cohort_stats_result = None
+    institutions_lookup_result = None
     retrieved_urls: set[str] = set()
 
     try:
@@ -178,7 +188,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
         return (
             None, None,
             {"reply": FALLBACK_LLM_UNAVAILABLE, "recommendation": None},
-            None, None, None,
+            None, None, None, None,
         )
 
     recommendation: Recommendation | None = None
@@ -207,6 +217,8 @@ def _resolve_tools(messages: list[dict], chat_fn):
                     eligibility_result = extra["eligibility"]
                 if "cohort_stats" in extra:
                     cohort_stats_result = extra["cohort_stats"]
+                if "institutions_lookup" in extra:
+                    institutions_lookup_result = extra["institutions_lookup"]
                 if "retrieved_urls" in extra:
                     retrieved_urls |= extra["retrieved_urls"]
 
@@ -238,7 +250,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
                         return (
                             None, None,
                             {"reply": FALLBACK_RECOMMENDATION_FAILED, "recommendation": None},
-                            aggregate_result, eligibility_result, cohort_stats_result,
+                            aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
                         )
 
             messages.append(
@@ -251,7 +263,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
             return (
                 None, None,
                 {"reply": FALLBACK_LLM_UNAVAILABLE, "recommendation": None},
-                aggregate_result, eligibility_result, cohort_stats_result,
+                aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
             )
 
         hops += 1
@@ -265,10 +277,13 @@ def _resolve_tools(messages: list[dict], chat_fn):
         return (
             None, None,
             {"reply": FALLBACK_TOO_MANY_TOOL_CALLS, "recommendation": None},
-            aggregate_result, eligibility_result, cohort_stats_result,
+            aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
         )
 
-    return response, recommendation, None, aggregate_result, eligibility_result, cohort_stats_result
+    return (
+        response, recommendation, None,
+        aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
+    )
 
 
 def _build_calculation(aggregate_result, eligibility_result):
@@ -292,6 +307,16 @@ def _build_cohort_stats(cohort_stats_result):
     return cohort_stats_result.model_dump()
 
 
+def _build_institutions_lookup(institutions_lookup_result):
+    """Packages the real list_institutions result, or None if it didn't run
+    this turn. institutions_example here is copied verbatim from
+    programmes.json - see docs/evaluation.md Failure 12 for the live case
+    (model inventing institutions from memory) this exists to fix."""
+    if institutions_lookup_result is None:
+        return None
+    return institutions_lookup_result.model_dump()
+
+
 def _drain(gen):
     """Runs a _resolve_tools generator to completion, discarding progress
     events (used by the non-streaming handle_turn, which has no consumer
@@ -309,7 +334,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
     Ollama server (see tests/test_orchestrator.py).
 
     Returns: {"reply": str, "recommendation": dict | None, "calculation": dict | None,
-              "cohort_stats": dict | None}
+              "cohort_stats": dict | None, "institutions_lookup": dict | None}
     `calculation` carries the real compute_aggregate/check_eligibility
     results for this turn, independent of the model's own narration - see
     docs/evaluation.md Failure 3 for why this exists. `cohort_stats` is the
@@ -317,7 +342,11 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
     `data_source` field is the mandatory "this is synthetic demonstration
     data, not real" caveat, carried here from code so it's always present
     in the response regardless of whether the model's own reply text
-    repeated it.
+    repeated it. `institutions_lookup` is the same idea applied to
+    list_institutions (see Failure 12): its institutions_example is copied
+    verbatim from programmes.json, carried here from code so it's available
+    to the frontend even when the model's own reply names institutions that
+    don't match it.
     """
     history = session_store.get_history(session_id)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history + [
@@ -326,16 +355,18 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
 
     (
         final_response, recommendation, early_result,
-        aggregate_result, eligibility_result, cohort_stats_result,
+        aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
     ) = _drain(_resolve_tools(messages, chat_fn))
     calculation = _build_calculation(aggregate_result, eligibility_result)
     cohort_stats = _build_cohort_stats(cohort_stats_result)
+    institutions_lookup = _build_institutions_lookup(institutions_lookup_result)
 
     if early_result is not None:
         session_store.append_message(session_id, "user", user_message)
         session_store.append_message(session_id, "assistant", early_result["reply"])
         early_result["calculation"] = calculation
         early_result["cohort_stats"] = cohort_stats
+        early_result["institutions_lookup"] = institutions_lookup
         return early_result
 
     final_text = final_response["content"] or (
@@ -348,6 +379,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
     return {
         "reply": final_text,
         "cohort_stats": cohort_stats,
+        "institutions_lookup": institutions_lookup,
         "recommendation": recommendation.model_dump() if recommendation else None,
         "calculation": calculation,
     }
@@ -364,7 +396,7 @@ def handle_turn_stream(
         {"type": "token", "text": str}
         {"type": "error", "message": str, "calculation": dict | None}   - replaces "done" on failure
         {"type": "done", "recommendation": dict | None, "calculation": dict | None,
-         "cohort_stats": dict | None}
+         "cohort_stats": dict | None, "institutions_lookup": dict | None}
 
     `calculation` carries the real compute_aggregate/check_eligibility
     results for this turn (if either tool ran), independent of whatever the
@@ -372,6 +404,10 @@ def handle_turn_stream(
     `cohort_stats` is the same idea for analyze_outcomes (Failure 9): its
     `data_source` field is the mandatory synthetic-data caveat, carried from
     code so it reaches the response even if the model's streamed text drops it.
+    `institutions_lookup` is the same idea for list_institutions (Failure
+    12): its institutions_example is copied verbatim from programmes.json,
+    carried from code so a frontend can render the real list even if the
+    model's streamed text names different institutions.
 
     `chat_fn` drives the (non-streaming) tool-decision rounds; `stream_fn`
     drives the genuinely-streamed final answer once no more tools are
@@ -389,10 +425,11 @@ def handle_turn_stream(
     except StopIteration as stop:
         (
             final_response, recommendation, early_result,
-            aggregate_result, eligibility_result, cohort_stats_result,
+            aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
         ) = stop.value
     calculation = _build_calculation(aggregate_result, eligibility_result)
     cohort_stats = _build_cohort_stats(cohort_stats_result)
+    institutions_lookup = _build_institutions_lookup(institutions_lookup_result)
 
     if early_result is not None:
         session_store.append_message(session_id, "user", user_message)
@@ -402,6 +439,7 @@ def handle_turn_stream(
             "message": early_result["reply"],
             "calculation": calculation,
             "cohort_stats": cohort_stats,
+            "institutions_lookup": institutions_lookup,
         }
         return
 
@@ -430,4 +468,5 @@ def handle_turn_stream(
         "recommendation": recommendation.model_dump() if recommendation else None,
         "calculation": calculation,
         "cohort_stats": cohort_stats,
+        "institutions_lookup": institutions_lookup,
     }

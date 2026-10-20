@@ -86,6 +86,36 @@ def test_every_category_present_in_result():
     assert len(categories) == 8
 
 
+def test_aggregate_better_than_bands_best_is_still_eligible():
+    """Regression test for Failure 11 (docs/evaluation.md): a student with
+    aggregate 6 (excellent - lower is better in WASSCE) was marked
+    INELIGIBLE for Physician Assistantship's 9-24 band purely because 6 is
+    better than the band's `best`=9. There is no such thing as "too good"
+    an aggregate in this system - any aggregate at or better than a
+    category's `worst` cutoff clears every real cutoff in that category.
+    """
+    result = check_eligibility(
+        aggregate=6,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B2", "Physics": "A1"},
+    )
+    pa = next(m for m in result.matches if "Physician Assistantship" in m.category)
+    assert pa.aggregate_band == (9, 24)
+    assert pa.aggregate_eligible is True
+    assert pa.overall_eligible is True
+
+
+def test_aggregate_worse_than_bands_worst_is_ineligible():
+    """The upper bound still correctly excludes a genuinely weaker aggregate."""
+    result = check_eligibility(
+        aggregate=30,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B2", "Physics": "A1"},
+    )
+    pa = next(m for m in result.matches if "Physician Assistantship" in m.category)
+    assert pa.aggregate_eligible is False
+
+
 def test_physician_assistantship_eligible_with_right_electives_and_c6_grades():
     """C6 (an ordinary credit pass) is enough for Physician Assistantship -
     deliberately less competitive than Medicine/Dentistry's B3 minimum,
