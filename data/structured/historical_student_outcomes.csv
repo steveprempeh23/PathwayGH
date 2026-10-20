@@ -83,399 +83,459 @@ student_id,year,programme_category,track,aggregate,admitted
 82,2021,Open Public-University Entry (general eligibility floor),general,29,True
 83,2021,Open Public-University Entry (general eligibility floor),general,25,True
 84,2021,Open Public-University Entry (general eligibility floor),general,21,True
-85,2021,HND / Polytechnic (Technical University) Tracks,technical,11,True
-86,2021,HND / Polytechnic (Technical University) Tracks,technical,37,True
-87,2021,HND / Polytechnic (Technical University) Tracks,technical,54,False
-88,2021,HND / Polytechnic (Technical University) Tracks,technical,14,True
-89,2021,HND / Polytechnic (Technical University) Tracks,technical,36,False
-90,2021,HND / Polytechnic (Technical University) Tracks,technical,16,True
-91,2021,HND / Polytechnic (Technical University) Tracks,technical,44,True
-92,2021,HND / Polytechnic (Technical University) Tracks,technical,19,False
-93,2021,HND / Polytechnic (Technical University) Tracks,technical,54,False
-94,2021,HND / Polytechnic (Technical University) Tracks,technical,18,True
-95,2021,HND / Polytechnic (Technical University) Tracks,technical,31,False
-96,2021,HND / Polytechnic (Technical University) Tracks,technical,47,True
-97,2022,Medicine / Dentistry,science,20,False
-98,2022,Medicine / Dentistry,science,7,True
-99,2022,Medicine / Dentistry,science,7,True
-100,2022,Medicine / Dentistry,science,15,False
-101,2022,Medicine / Dentistry,science,15,False
-102,2022,Medicine / Dentistry,science,7,True
-103,2022,Medicine / Dentistry,science,6,True
-104,2022,Medicine / Dentistry,science,20,True
-105,2022,Medicine / Dentistry,science,11,True
-106,2022,Medicine / Dentistry,science,9,True
-107,2022,Medicine / Dentistry,science,13,False
-108,2022,Medicine / Dentistry,science,8,True
-109,2022,Physician Assistantship / Allied Health,science,34,False
-110,2022,Physician Assistantship / Allied Health,science,21,True
-111,2022,Physician Assistantship / Allied Health,science,21,True
-112,2022,Physician Assistantship / Allied Health,science,12,True
-113,2022,Physician Assistantship / Allied Health,science,27,False
-114,2022,Physician Assistantship / Allied Health,science,19,True
-115,2022,Physician Assistantship / Allied Health,science,33,False
-116,2022,Physician Assistantship / Allied Health,science,27,False
-117,2022,Physician Assistantship / Allied Health,science,26,True
-118,2022,Physician Assistantship / Allied Health,science,18,True
-119,2022,Physician Assistantship / Allied Health,science,31,False
-120,2022,Physician Assistantship / Allied Health,science,13,True
-121,2022,Engineering / Pharmacy / Actuarial Science,science,23,False
-122,2022,Engineering / Pharmacy / Actuarial Science,science,19,False
-123,2022,Engineering / Pharmacy / Actuarial Science,science,20,False
-124,2022,Engineering / Pharmacy / Actuarial Science,science,8,True
-125,2022,Engineering / Pharmacy / Actuarial Science,science,23,True
-126,2022,Engineering / Pharmacy / Actuarial Science,science,26,False
-127,2022,Engineering / Pharmacy / Actuarial Science,science,6,False
-128,2022,Engineering / Pharmacy / Actuarial Science,science,13,True
-129,2022,Engineering / Pharmacy / Actuarial Science,science,21,False
-130,2022,Engineering / Pharmacy / Actuarial Science,science,18,False
-131,2022,Engineering / Pharmacy / Actuarial Science,science,11,True
-132,2022,Engineering / Pharmacy / Actuarial Science,science,18,True
-133,2022,General Science (non-clinical),science,31,False
-134,2022,General Science (non-clinical),science,15,True
-135,2022,General Science (non-clinical),science,29,False
-136,2022,General Science (non-clinical),science,23,True
-137,2022,General Science (non-clinical),science,21,True
-138,2022,General Science (non-clinical),science,15,True
-139,2022,General Science (non-clinical),science,7,True
-140,2022,General Science (non-clinical),science,23,True
-141,2022,General Science (non-clinical),science,16,True
-142,2022,General Science (non-clinical),science,24,True
-143,2022,General Science (non-clinical),science,33,False
-144,2022,General Science (non-clinical),science,7,False
-145,2022,Business / Finance / Accounting,business,8,True
-146,2022,Business / Finance / Accounting,business,8,True
-147,2022,Business / Finance / Accounting,business,27,False
-148,2022,Business / Finance / Accounting,business,18,True
-149,2022,Business / Finance / Accounting,business,34,False
-150,2022,Business / Finance / Accounting,business,24,True
-151,2022,Business / Finance / Accounting,business,25,True
-152,2022,Business / Finance / Accounting,business,27,False
-153,2022,Business / Finance / Accounting,business,22,True
-154,2022,Business / Finance / Accounting,business,14,True
-155,2022,Business / Finance / Accounting,business,28,False
-156,2022,Business / Finance / Accounting,business,14,True
-157,2022,General Humanities / Social Sciences / Education,arts,27,False
-158,2022,General Humanities / Social Sciences / Education,arts,20,True
-159,2022,General Humanities / Social Sciences / Education,arts,30,False
-160,2022,General Humanities / Social Sciences / Education,arts,6,True
-161,2022,General Humanities / Social Sciences / Education,arts,24,False
-162,2022,General Humanities / Social Sciences / Education,arts,8,True
-163,2022,General Humanities / Social Sciences / Education,arts,22,True
-164,2022,General Humanities / Social Sciences / Education,arts,17,True
-165,2022,General Humanities / Social Sciences / Education,arts,34,False
-166,2022,General Humanities / Social Sciences / Education,arts,15,True
-167,2022,General Humanities / Social Sciences / Education,arts,32,False
-168,2022,General Humanities / Social Sciences / Education,arts,15,True
-169,2022,Open Public-University Entry (general eligibility floor),general,39,True
-170,2022,Open Public-University Entry (general eligibility floor),general,41,False
-171,2022,Open Public-University Entry (general eligibility floor),general,12,False
-172,2022,Open Public-University Entry (general eligibility floor),general,14,True
-173,2022,Open Public-University Entry (general eligibility floor),general,12,True
-174,2022,Open Public-University Entry (general eligibility floor),general,15,True
-175,2022,Open Public-University Entry (general eligibility floor),general,44,False
-176,2022,Open Public-University Entry (general eligibility floor),general,27,True
-177,2022,Open Public-University Entry (general eligibility floor),general,46,False
-178,2022,Open Public-University Entry (general eligibility floor),general,38,False
-179,2022,Open Public-University Entry (general eligibility floor),general,9,True
-180,2022,Open Public-University Entry (general eligibility floor),general,33,True
-181,2022,HND / Polytechnic (Technical University) Tracks,technical,8,True
-182,2022,HND / Polytechnic (Technical University) Tracks,technical,55,False
-183,2022,HND / Polytechnic (Technical University) Tracks,technical,22,True
-184,2022,HND / Polytechnic (Technical University) Tracks,technical,34,True
-185,2022,HND / Polytechnic (Technical University) Tracks,technical,33,True
-186,2022,HND / Polytechnic (Technical University) Tracks,technical,13,True
-187,2022,HND / Polytechnic (Technical University) Tracks,technical,50,False
-188,2022,HND / Polytechnic (Technical University) Tracks,technical,40,True
-189,2022,HND / Polytechnic (Technical University) Tracks,technical,29,True
-190,2022,HND / Polytechnic (Technical University) Tracks,technical,15,True
-191,2022,HND / Polytechnic (Technical University) Tracks,technical,8,True
-192,2022,HND / Polytechnic (Technical University) Tracks,technical,56,False
-193,2023,Medicine / Dentistry,science,6,True
-194,2023,Medicine / Dentistry,science,9,True
-195,2023,Medicine / Dentistry,science,16,False
-196,2023,Medicine / Dentistry,science,18,False
-197,2023,Medicine / Dentistry,science,19,False
-198,2023,Medicine / Dentistry,science,15,False
-199,2023,Medicine / Dentistry,science,20,False
-200,2023,Medicine / Dentistry,science,19,False
-201,2023,Medicine / Dentistry,science,18,False
-202,2023,Medicine / Dentistry,science,20,False
-203,2023,Medicine / Dentistry,science,8,True
-204,2023,Medicine / Dentistry,science,11,False
-205,2023,Physician Assistantship / Allied Health,science,19,True
-206,2023,Physician Assistantship / Allied Health,science,33,False
-207,2023,Physician Assistantship / Allied Health,science,13,True
-208,2023,Physician Assistantship / Allied Health,science,31,False
-209,2023,Physician Assistantship / Allied Health,science,18,True
-210,2023,Physician Assistantship / Allied Health,science,33,False
-211,2023,Physician Assistantship / Allied Health,science,12,True
-212,2023,Physician Assistantship / Allied Health,science,20,True
-213,2023,Physician Assistantship / Allied Health,science,32,False
-214,2023,Physician Assistantship / Allied Health,science,13,True
-215,2023,Physician Assistantship / Allied Health,science,27,False
-216,2023,Physician Assistantship / Allied Health,science,16,True
-217,2023,Engineering / Pharmacy / Actuarial Science,science,8,False
-218,2023,Engineering / Pharmacy / Actuarial Science,science,14,True
-219,2023,Engineering / Pharmacy / Actuarial Science,science,22,False
-220,2023,Engineering / Pharmacy / Actuarial Science,science,23,False
-221,2023,Engineering / Pharmacy / Actuarial Science,science,6,True
-222,2023,Engineering / Pharmacy / Actuarial Science,science,14,True
-223,2023,Engineering / Pharmacy / Actuarial Science,science,14,True
-224,2023,Engineering / Pharmacy / Actuarial Science,science,25,False
-225,2023,Engineering / Pharmacy / Actuarial Science,science,16,True
-226,2023,Engineering / Pharmacy / Actuarial Science,science,22,False
-227,2023,Engineering / Pharmacy / Actuarial Science,science,24,False
-228,2023,Engineering / Pharmacy / Actuarial Science,science,7,True
-229,2023,General Science (non-clinical),science,6,True
-230,2023,General Science (non-clinical),science,31,False
-231,2023,General Science (non-clinical),science,29,False
-232,2023,General Science (non-clinical),science,29,False
-233,2023,General Science (non-clinical),science,17,True
-234,2023,General Science (non-clinical),science,27,False
-235,2023,General Science (non-clinical),science,25,False
-236,2023,General Science (non-clinical),science,33,False
-237,2023,General Science (non-clinical),science,34,False
-238,2023,General Science (non-clinical),science,15,True
-239,2023,General Science (non-clinical),science,16,True
-240,2023,General Science (non-clinical),science,15,True
-241,2023,Business / Finance / Accounting,business,12,True
-242,2023,Business / Finance / Accounting,business,18,True
-243,2023,Business / Finance / Accounting,business,34,False
-244,2023,Business / Finance / Accounting,business,24,True
-245,2023,Business / Finance / Accounting,business,23,True
-246,2023,Business / Finance / Accounting,business,15,True
-247,2023,Business / Finance / Accounting,business,19,True
-248,2023,Business / Finance / Accounting,business,25,False
-249,2023,Business / Finance / Accounting,business,20,True
-250,2023,Business / Finance / Accounting,business,27,False
-251,2023,Business / Finance / Accounting,business,21,True
-252,2023,Business / Finance / Accounting,business,31,False
-253,2023,General Humanities / Social Sciences / Education,arts,27,True
-254,2023,General Humanities / Social Sciences / Education,arts,22,True
-255,2023,General Humanities / Social Sciences / Education,arts,25,False
-256,2023,General Humanities / Social Sciences / Education,arts,32,False
-257,2023,General Humanities / Social Sciences / Education,arts,13,True
-258,2023,General Humanities / Social Sciences / Education,arts,13,True
-259,2023,General Humanities / Social Sciences / Education,arts,10,True
-260,2023,General Humanities / Social Sciences / Education,arts,13,False
-261,2023,General Humanities / Social Sciences / Education,arts,25,False
-262,2023,General Humanities / Social Sciences / Education,arts,8,True
-263,2023,General Humanities / Social Sciences / Education,arts,34,False
-264,2023,General Humanities / Social Sciences / Education,arts,12,True
-265,2023,Open Public-University Entry (general eligibility floor),general,30,True
-266,2023,Open Public-University Entry (general eligibility floor),general,21,True
-267,2023,Open Public-University Entry (general eligibility floor),general,6,True
-268,2023,Open Public-University Entry (general eligibility floor),general,12,True
-269,2023,Open Public-University Entry (general eligibility floor),general,20,True
-270,2023,Open Public-University Entry (general eligibility floor),general,39,False
-271,2023,Open Public-University Entry (general eligibility floor),general,41,False
-272,2023,Open Public-University Entry (general eligibility floor),general,13,True
-273,2023,Open Public-University Entry (general eligibility floor),general,35,True
-274,2023,Open Public-University Entry (general eligibility floor),general,41,False
-275,2023,Open Public-University Entry (general eligibility floor),general,34,True
-276,2023,Open Public-University Entry (general eligibility floor),general,38,False
-277,2023,HND / Polytechnic (Technical University) Tracks,technical,41,True
-278,2023,HND / Polytechnic (Technical University) Tracks,technical,16,True
-279,2023,HND / Polytechnic (Technical University) Tracks,technical,36,True
-280,2023,HND / Polytechnic (Technical University) Tracks,technical,54,False
-281,2023,HND / Polytechnic (Technical University) Tracks,technical,46,True
-282,2023,HND / Polytechnic (Technical University) Tracks,technical,55,False
-283,2023,HND / Polytechnic (Technical University) Tracks,technical,46,True
-284,2023,HND / Polytechnic (Technical University) Tracks,technical,34,True
-285,2023,HND / Polytechnic (Technical University) Tracks,technical,24,True
-286,2023,HND / Polytechnic (Technical University) Tracks,technical,27,True
-287,2023,HND / Polytechnic (Technical University) Tracks,technical,40,True
-288,2023,HND / Polytechnic (Technical University) Tracks,technical,15,True
-289,2024,Medicine / Dentistry,science,17,False
-290,2024,Medicine / Dentistry,science,9,True
-291,2024,Medicine / Dentistry,science,12,False
-292,2024,Medicine / Dentistry,science,13,False
-293,2024,Medicine / Dentistry,science,9,True
-294,2024,Medicine / Dentistry,science,12,False
-295,2024,Medicine / Dentistry,science,15,False
-296,2024,Medicine / Dentistry,science,6,True
-297,2024,Medicine / Dentistry,science,18,False
-298,2024,Medicine / Dentistry,science,13,True
-299,2024,Medicine / Dentistry,science,11,False
-300,2024,Medicine / Dentistry,science,12,False
-301,2024,Physician Assistantship / Allied Health,science,32,False
-302,2024,Physician Assistantship / Allied Health,science,29,False
-303,2024,Physician Assistantship / Allied Health,science,31,False
-304,2024,Physician Assistantship / Allied Health,science,13,True
-305,2024,Physician Assistantship / Allied Health,science,14,True
-306,2024,Physician Assistantship / Allied Health,science,6,False
-307,2024,Physician Assistantship / Allied Health,science,27,False
-308,2024,Physician Assistantship / Allied Health,science,18,True
-309,2024,Physician Assistantship / Allied Health,science,32,False
-310,2024,Physician Assistantship / Allied Health,science,10,False
-311,2024,Physician Assistantship / Allied Health,science,23,True
-312,2024,Physician Assistantship / Allied Health,science,18,True
-313,2024,Engineering / Pharmacy / Actuarial Science,science,27,True
-314,2024,Engineering / Pharmacy / Actuarial Science,science,26,False
-315,2024,Engineering / Pharmacy / Actuarial Science,science,20,False
-316,2024,Engineering / Pharmacy / Actuarial Science,science,14,True
-317,2024,Engineering / Pharmacy / Actuarial Science,science,12,True
-318,2024,Engineering / Pharmacy / Actuarial Science,science,16,True
-319,2024,Engineering / Pharmacy / Actuarial Science,science,18,True
-320,2024,Engineering / Pharmacy / Actuarial Science,science,19,False
-321,2024,Engineering / Pharmacy / Actuarial Science,science,8,True
-322,2024,Engineering / Pharmacy / Actuarial Science,science,23,True
-323,2024,Engineering / Pharmacy / Actuarial Science,science,17,True
-324,2024,Engineering / Pharmacy / Actuarial Science,science,8,True
-325,2024,General Science (non-clinical),science,26,True
-326,2024,General Science (non-clinical),science,6,False
-327,2024,General Science (non-clinical),science,12,True
-328,2024,General Science (non-clinical),science,25,False
-329,2024,General Science (non-clinical),science,10,True
-330,2024,General Science (non-clinical),science,9,True
-331,2024,General Science (non-clinical),science,12,True
-332,2024,General Science (non-clinical),science,14,True
-333,2024,General Science (non-clinical),science,11,True
-334,2024,General Science (non-clinical),science,29,False
-335,2024,General Science (non-clinical),science,30,False
-336,2024,General Science (non-clinical),science,15,True
-337,2024,Business / Finance / Accounting,business,6,False
-338,2024,Business / Finance / Accounting,business,24,True
-339,2024,Business / Finance / Accounting,business,18,True
-340,2024,Business / Finance / Accounting,business,28,False
-341,2024,Business / Finance / Accounting,business,24,True
-342,2024,Business / Finance / Accounting,business,26,False
-343,2024,Business / Finance / Accounting,business,28,False
-344,2024,Business / Finance / Accounting,business,33,False
-345,2024,Business / Finance / Accounting,business,31,False
-346,2024,Business / Finance / Accounting,business,24,True
-347,2024,Business / Finance / Accounting,business,17,True
-348,2024,Business / Finance / Accounting,business,27,False
-349,2024,General Humanities / Social Sciences / Education,arts,22,True
-350,2024,General Humanities / Social Sciences / Education,arts,6,True
-351,2024,General Humanities / Social Sciences / Education,arts,32,False
-352,2024,General Humanities / Social Sciences / Education,arts,19,False
-353,2024,General Humanities / Social Sciences / Education,arts,26,False
-354,2024,General Humanities / Social Sciences / Education,arts,20,True
-355,2024,General Humanities / Social Sciences / Education,arts,19,True
-356,2024,General Humanities / Social Sciences / Education,arts,22,False
-357,2024,General Humanities / Social Sciences / Education,arts,14,True
-358,2024,General Humanities / Social Sciences / Education,arts,23,True
-359,2024,General Humanities / Social Sciences / Education,arts,20,True
-360,2024,General Humanities / Social Sciences / Education,arts,29,False
-361,2024,Open Public-University Entry (general eligibility floor),general,26,True
-362,2024,Open Public-University Entry (general eligibility floor),general,11,True
-363,2024,Open Public-University Entry (general eligibility floor),general,34,True
-364,2024,Open Public-University Entry (general eligibility floor),general,35,True
-365,2024,Open Public-University Entry (general eligibility floor),general,30,True
-366,2024,Open Public-University Entry (general eligibility floor),general,37,False
-367,2024,Open Public-University Entry (general eligibility floor),general,17,True
-368,2024,Open Public-University Entry (general eligibility floor),general,28,True
-369,2024,Open Public-University Entry (general eligibility floor),general,27,True
-370,2024,Open Public-University Entry (general eligibility floor),general,44,False
-371,2024,Open Public-University Entry (general eligibility floor),general,23,True
-372,2024,Open Public-University Entry (general eligibility floor),general,39,False
-373,2024,HND / Polytechnic (Technical University) Tracks,technical,11,True
-374,2024,HND / Polytechnic (Technical University) Tracks,technical,32,True
-375,2024,HND / Polytechnic (Technical University) Tracks,technical,54,False
-376,2024,HND / Polytechnic (Technical University) Tracks,technical,36,True
-377,2024,HND / Polytechnic (Technical University) Tracks,technical,37,True
-378,2024,HND / Polytechnic (Technical University) Tracks,technical,7,True
-379,2024,HND / Polytechnic (Technical University) Tracks,technical,20,True
-380,2024,HND / Polytechnic (Technical University) Tracks,technical,21,True
-381,2024,HND / Polytechnic (Technical University) Tracks,technical,43,True
-382,2024,HND / Polytechnic (Technical University) Tracks,technical,41,True
-383,2024,HND / Polytechnic (Technical University) Tracks,technical,33,False
-384,2024,HND / Polytechnic (Technical University) Tracks,technical,41,True
-385,2025,Medicine / Dentistry,science,17,False
-386,2025,Medicine / Dentistry,science,10,True
-387,2025,Medicine / Dentistry,science,7,True
-388,2025,Medicine / Dentistry,science,11,False
-389,2025,Medicine / Dentistry,science,14,False
-390,2025,Medicine / Dentistry,science,17,False
-391,2025,Medicine / Dentistry,science,9,True
-392,2025,Medicine / Dentistry,science,10,True
-393,2025,Medicine / Dentistry,science,18,False
-394,2025,Medicine / Dentistry,science,10,False
-395,2025,Medicine / Dentistry,science,19,False
-396,2025,Medicine / Dentistry,science,9,True
-397,2025,Physician Assistantship / Allied Health,science,15,True
-398,2025,Physician Assistantship / Allied Health,science,23,True
-399,2025,Physician Assistantship / Allied Health,science,7,False
-400,2025,Physician Assistantship / Allied Health,science,23,True
-401,2025,Physician Assistantship / Allied Health,science,10,True
-402,2025,Physician Assistantship / Allied Health,science,30,False
-403,2025,Physician Assistantship / Allied Health,science,33,True
-404,2025,Physician Assistantship / Allied Health,science,15,True
-405,2025,Physician Assistantship / Allied Health,science,20,True
-406,2025,Physician Assistantship / Allied Health,science,7,False
-407,2025,Physician Assistantship / Allied Health,science,33,False
-408,2025,Physician Assistantship / Allied Health,science,32,True
-409,2025,Engineering / Pharmacy / Actuarial Science,science,21,True
-410,2025,Engineering / Pharmacy / Actuarial Science,science,26,False
-411,2025,Engineering / Pharmacy / Actuarial Science,science,10,True
-412,2025,Engineering / Pharmacy / Actuarial Science,science,24,False
-413,2025,Engineering / Pharmacy / Actuarial Science,science,8,False
-414,2025,Engineering / Pharmacy / Actuarial Science,science,9,True
-415,2025,Engineering / Pharmacy / Actuarial Science,science,19,False
-416,2025,Engineering / Pharmacy / Actuarial Science,science,25,False
-417,2025,Engineering / Pharmacy / Actuarial Science,science,22,False
-418,2025,Engineering / Pharmacy / Actuarial Science,science,20,False
-419,2025,Engineering / Pharmacy / Actuarial Science,science,24,False
-420,2025,Engineering / Pharmacy / Actuarial Science,science,15,True
-421,2025,General Science (non-clinical),science,7,True
-422,2025,General Science (non-clinical),science,29,True
-423,2025,General Science (non-clinical),science,30,False
-424,2025,General Science (non-clinical),science,12,True
-425,2025,General Science (non-clinical),science,8,True
-426,2025,General Science (non-clinical),science,11,True
-427,2025,General Science (non-clinical),science,11,True
-428,2025,General Science (non-clinical),science,20,True
-429,2025,General Science (non-clinical),science,21,True
-430,2025,General Science (non-clinical),science,13,True
-431,2025,General Science (non-clinical),science,15,True
-432,2025,General Science (non-clinical),science,20,True
-433,2025,Business / Finance / Accounting,business,13,False
-434,2025,Business / Finance / Accounting,business,31,False
-435,2025,Business / Finance / Accounting,business,24,True
-436,2025,Business / Finance / Accounting,business,12,True
-437,2025,Business / Finance / Accounting,business,23,True
-438,2025,Business / Finance / Accounting,business,10,False
-439,2025,Business / Finance / Accounting,business,32,False
-440,2025,Business / Finance / Accounting,business,7,True
-441,2025,Business / Finance / Accounting,business,15,True
-442,2025,Business / Finance / Accounting,business,32,False
-443,2025,Business / Finance / Accounting,business,15,True
-444,2025,Business / Finance / Accounting,business,20,True
-445,2025,General Humanities / Social Sciences / Education,arts,28,False
-446,2025,General Humanities / Social Sciences / Education,arts,14,True
-447,2025,General Humanities / Social Sciences / Education,arts,21,True
-448,2025,General Humanities / Social Sciences / Education,arts,25,True
-449,2025,General Humanities / Social Sciences / Education,arts,19,True
-450,2025,General Humanities / Social Sciences / Education,arts,25,False
-451,2025,General Humanities / Social Sciences / Education,arts,8,True
-452,2025,General Humanities / Social Sciences / Education,arts,27,False
-453,2025,General Humanities / Social Sciences / Education,arts,24,True
-454,2025,General Humanities / Social Sciences / Education,arts,6,False
-455,2025,General Humanities / Social Sciences / Education,arts,27,False
-456,2025,General Humanities / Social Sciences / Education,arts,24,True
-457,2025,Open Public-University Entry (general eligibility floor),general,17,True
-458,2025,Open Public-University Entry (general eligibility floor),general,34,False
-459,2025,Open Public-University Entry (general eligibility floor),general,17,False
-460,2025,Open Public-University Entry (general eligibility floor),general,33,True
-461,2025,Open Public-University Entry (general eligibility floor),general,37,False
-462,2025,Open Public-University Entry (general eligibility floor),general,36,True
-463,2025,Open Public-University Entry (general eligibility floor),general,27,True
-464,2025,Open Public-University Entry (general eligibility floor),general,12,True
-465,2025,Open Public-University Entry (general eligibility floor),general,27,True
-466,2025,Open Public-University Entry (general eligibility floor),general,37,False
-467,2025,Open Public-University Entry (general eligibility floor),general,31,True
-468,2025,Open Public-University Entry (general eligibility floor),general,41,True
-469,2025,HND / Polytechnic (Technical University) Tracks,technical,11,True
-470,2025,HND / Polytechnic (Technical University) Tracks,technical,26,True
-471,2025,HND / Polytechnic (Technical University) Tracks,technical,55,False
-472,2025,HND / Polytechnic (Technical University) Tracks,technical,38,True
-473,2025,HND / Polytechnic (Technical University) Tracks,technical,6,True
-474,2025,HND / Polytechnic (Technical University) Tracks,technical,40,True
-475,2025,HND / Polytechnic (Technical University) Tracks,technical,9,True
-476,2025,HND / Polytechnic (Technical University) Tracks,technical,29,True
-477,2025,HND / Polytechnic (Technical University) Tracks,technical,37,True
-478,2025,HND / Polytechnic (Technical University) Tracks,technical,54,True
-479,2025,HND / Polytechnic (Technical University) Tracks,technical,23,True
-480,2025,HND / Polytechnic (Technical University) Tracks,technical,24,True
+85,2021,Private University Entry,general,11,True
+86,2021,Private University Entry,general,37,False
+87,2021,Private University Entry,general,40,False
+88,2021,Private University Entry,general,14,True
+89,2021,Private University Entry,general,41,False
+90,2021,Private University Entry,general,39,False
+91,2021,Private University Entry,general,33,False
+92,2021,Private University Entry,general,40,False
+93,2021,Private University Entry,general,18,True
+94,2021,Private University Entry,general,31,False
+95,2021,Private University Entry,general,29,True
+96,2021,Private University Entry,general,39,False
+97,2021,HND / Polytechnic (Technical University) Tracks,technical,21,True
+98,2021,HND / Polytechnic (Technical University) Tracks,technical,27,True
+99,2021,HND / Polytechnic (Technical University) Tracks,technical,41,True
+100,2021,HND / Polytechnic (Technical University) Tracks,technical,20,True
+101,2021,HND / Polytechnic (Technical University) Tracks,technical,51,False
+102,2021,HND / Polytechnic (Technical University) Tracks,technical,20,True
+103,2021,HND / Polytechnic (Technical University) Tracks,technical,8,True
+104,2021,HND / Polytechnic (Technical University) Tracks,technical,10,True
+105,2021,HND / Polytechnic (Technical University) Tracks,technical,23,True
+106,2021,HND / Polytechnic (Technical University) Tracks,technical,19,True
+107,2021,HND / Polytechnic (Technical University) Tracks,technical,52,False
+108,2021,HND / Polytechnic (Technical University) Tracks,technical,42,True
+109,2022,Medicine / Dentistry,science,9,True
+110,2022,Medicine / Dentistry,science,18,False
+111,2022,Medicine / Dentistry,science,7,True
+112,2022,Medicine / Dentistry,science,12,False
+113,2022,Medicine / Dentistry,science,12,False
+114,2022,Medicine / Dentistry,science,17,True
+115,2022,Medicine / Dentistry,science,16,False
+116,2022,Medicine / Dentistry,science,7,True
+117,2022,Medicine / Dentistry,science,17,False
+118,2022,Medicine / Dentistry,science,19,False
+119,2022,Medicine / Dentistry,science,9,True
+120,2022,Medicine / Dentistry,science,13,False
+121,2022,Physician Assistantship / Allied Health,science,11,True
+122,2022,Physician Assistantship / Allied Health,science,13,True
+123,2022,Physician Assistantship / Allied Health,science,8,False
+124,2022,Physician Assistantship / Allied Health,science,33,False
+125,2022,Physician Assistantship / Allied Health,science,9,True
+126,2022,Physician Assistantship / Allied Health,science,23,True
+127,2022,Physician Assistantship / Allied Health,science,8,False
+128,2022,Physician Assistantship / Allied Health,science,33,False
+129,2022,Physician Assistantship / Allied Health,science,19,True
+130,2022,Physician Assistantship / Allied Health,science,12,True
+131,2022,Physician Assistantship / Allied Health,science,34,True
+132,2022,Physician Assistantship / Allied Health,science,18,True
+133,2022,Engineering / Pharmacy / Actuarial Science,science,18,True
+134,2022,Engineering / Pharmacy / Actuarial Science,science,20,False
+135,2022,Engineering / Pharmacy / Actuarial Science,science,28,False
+136,2022,Engineering / Pharmacy / Actuarial Science,science,23,False
+137,2022,Engineering / Pharmacy / Actuarial Science,science,21,False
+138,2022,Engineering / Pharmacy / Actuarial Science,science,15,True
+139,2022,Engineering / Pharmacy / Actuarial Science,science,7,True
+140,2022,Engineering / Pharmacy / Actuarial Science,science,23,True
+141,2022,Engineering / Pharmacy / Actuarial Science,science,16,True
+142,2022,Engineering / Pharmacy / Actuarial Science,science,24,False
+143,2022,Engineering / Pharmacy / Actuarial Science,science,22,False
+144,2022,Engineering / Pharmacy / Actuarial Science,science,22,True
+145,2022,General Science (non-clinical),science,11,True
+146,2022,General Science (non-clinical),science,8,True
+147,2022,General Science (non-clinical),science,13,True
+148,2022,General Science (non-clinical),science,34,False
+149,2022,General Science (non-clinical),science,24,True
+150,2022,General Science (non-clinical),science,25,True
+151,2022,General Science (non-clinical),science,27,False
+152,2022,General Science (non-clinical),science,22,True
+153,2022,General Science (non-clinical),science,14,True
+154,2022,General Science (non-clinical),science,28,False
+155,2022,General Science (non-clinical),science,14,True
+156,2022,General Science (non-clinical),science,27,False
+157,2022,Business / Finance / Accounting,business,20,True
+158,2022,Business / Finance / Accounting,business,30,False
+159,2022,Business / Finance / Accounting,business,6,True
+160,2022,Business / Finance / Accounting,business,24,False
+161,2022,Business / Finance / Accounting,business,8,True
+162,2022,Business / Finance / Accounting,business,22,True
+163,2022,Business / Finance / Accounting,business,17,True
+164,2022,Business / Finance / Accounting,business,34,False
+165,2022,Business / Finance / Accounting,business,15,True
+166,2022,Business / Finance / Accounting,business,32,False
+167,2022,Business / Finance / Accounting,business,15,True
+168,2022,Business / Finance / Accounting,business,31,False
+169,2022,General Humanities / Social Sciences / Education,arts,6,True
+170,2022,General Humanities / Social Sciences / Education,arts,23,True
+171,2022,General Humanities / Social Sciences / Education,arts,27,False
+172,2022,General Humanities / Social Sciences / Education,arts,34,False
+173,2022,General Humanities / Social Sciences / Education,arts,9,True
+174,2022,General Humanities / Social Sciences / Education,arts,29,False
+175,2022,General Humanities / Social Sciences / Education,arts,14,True
+176,2022,General Humanities / Social Sciences / Education,arts,12,True
+177,2022,General Humanities / Social Sciences / Education,arts,12,True
+178,2022,General Humanities / Social Sciences / Education,arts,33,False
+179,2022,General Humanities / Social Sciences / Education,arts,21,True
+180,2022,General Humanities / Social Sciences / Education,arts,33,True
+181,2022,Open Public-University Entry (general eligibility floor),general,46,False
+182,2022,Open Public-University Entry (general eligibility floor),general,23,True
+183,2022,Open Public-University Entry (general eligibility floor),general,27,True
+184,2022,Open Public-University Entry (general eligibility floor),general,46,False
+185,2022,Open Public-University Entry (general eligibility floor),general,16,True
+186,2022,Open Public-University Entry (general eligibility floor),general,41,False
+187,2022,Open Public-University Entry (general eligibility floor),general,41,True
+188,2022,Open Public-University Entry (general eligibility floor),general,10,False
+189,2022,Open Public-University Entry (general eligibility floor),general,15,True
+190,2022,Open Public-University Entry (general eligibility floor),general,29,True
+191,2022,Open Public-University Entry (general eligibility floor),general,15,True
+192,2022,Open Public-University Entry (general eligibility floor),general,8,True
+193,2022,Private University Entry,general,8,True
+194,2022,Private University Entry,general,19,True
+195,2022,Private University Entry,general,12,True
+196,2022,Private University Entry,general,41,False
+197,2022,Private University Entry,general,32,False
+198,2022,Private University Entry,general,15,False
+199,2022,Private University Entry,general,21,True
+200,2022,Private University Entry,general,17,True
+201,2022,Private University Entry,general,7,True
+202,2022,Private University Entry,general,27,True
+203,2022,Private University Entry,general,32,True
+204,2022,Private University Entry,general,21,True
+205,2022,HND / Polytechnic (Technical University) Tracks,technical,56,False
+206,2022,HND / Polytechnic (Technical University) Tracks,technical,30,True
+207,2022,HND / Polytechnic (Technical University) Tracks,technical,36,True
+208,2022,HND / Polytechnic (Technical University) Tracks,technical,58,False
+209,2022,HND / Polytechnic (Technical University) Tracks,technical,28,True
+210,2022,HND / Polytechnic (Technical University) Tracks,technical,56,False
+211,2022,HND / Polytechnic (Technical University) Tracks,technical,20,True
+212,2022,HND / Polytechnic (Technical University) Tracks,technical,18,True
+213,2022,HND / Polytechnic (Technical University) Tracks,technical,23,True
+214,2022,HND / Polytechnic (Technical University) Tracks,technical,55,False
+215,2022,HND / Polytechnic (Technical University) Tracks,technical,47,True
+216,2022,HND / Polytechnic (Technical University) Tracks,technical,49,False
+217,2023,Medicine / Dentistry,science,14,False
+218,2023,Medicine / Dentistry,science,6,True
+219,2023,Medicine / Dentistry,science,10,True
+220,2023,Medicine / Dentistry,science,10,True
+221,2023,Medicine / Dentistry,science,15,False
+222,2023,Medicine / Dentistry,science,17,False
+223,2023,Medicine / Dentistry,science,12,False
+224,2023,Medicine / Dentistry,science,14,False
+225,2023,Medicine / Dentistry,science,20,False
+226,2023,Medicine / Dentistry,science,10,True
+227,2023,Medicine / Dentistry,science,12,True
+228,2023,Medicine / Dentistry,science,20,False
+229,2023,Physician Assistantship / Allied Health,science,27,False
+230,2023,Physician Assistantship / Allied Health,science,29,False
+231,2023,Physician Assistantship / Allied Health,science,12,True
+232,2023,Physician Assistantship / Allied Health,science,8,False
+233,2023,Physician Assistantship / Allied Health,science,16,True
+234,2023,Physician Assistantship / Allied Health,science,27,False
+235,2023,Physician Assistantship / Allied Health,science,29,False
+236,2023,Physician Assistantship / Allied Health,science,22,True
+237,2023,Physician Assistantship / Allied Health,science,19,True
+238,2023,Physician Assistantship / Allied Health,science,28,False
+239,2023,Physician Assistantship / Allied Health,science,10,True
+240,2023,Physician Assistantship / Allied Health,science,27,False
+241,2023,Engineering / Pharmacy / Actuarial Science,science,27,False
+242,2023,Engineering / Pharmacy / Actuarial Science,science,11,True
+243,2023,Engineering / Pharmacy / Actuarial Science,science,15,True
+244,2023,Engineering / Pharmacy / Actuarial Science,science,6,True
+245,2023,Engineering / Pharmacy / Actuarial Science,science,12,True
+246,2023,Engineering / Pharmacy / Actuarial Science,science,24,False
+247,2023,Engineering / Pharmacy / Actuarial Science,science,16,True
+248,2023,Engineering / Pharmacy / Actuarial Science,science,20,False
+249,2023,Engineering / Pharmacy / Actuarial Science,science,22,False
+250,2023,Engineering / Pharmacy / Actuarial Science,science,11,True
+251,2023,Engineering / Pharmacy / Actuarial Science,science,15,True
+252,2023,Engineering / Pharmacy / Actuarial Science,science,26,False
+253,2023,General Science (non-clinical),science,8,True
+254,2023,General Science (non-clinical),science,30,False
+255,2023,General Science (non-clinical),science,15,True
+256,2023,General Science (non-clinical),science,12,True
+257,2023,General Science (non-clinical),science,7,True
+258,2023,General Science (non-clinical),science,21,True
+259,2023,General Science (non-clinical),science,30,True
+260,2023,General Science (non-clinical),science,19,True
+261,2023,General Science (non-clinical),science,24,True
+262,2023,General Science (non-clinical),science,28,False
+263,2023,General Science (non-clinical),science,18,True
+264,2023,General Science (non-clinical),science,26,False
+265,2023,Business / Finance / Accounting,business,34,False
+266,2023,Business / Finance / Accounting,business,30,False
+267,2023,Business / Finance / Accounting,business,30,False
+268,2023,Business / Finance / Accounting,business,11,True
+269,2023,Business / Finance / Accounting,business,28,False
+270,2023,Business / Finance / Accounting,business,7,True
+271,2023,Business / Finance / Accounting,business,33,False
+272,2023,Business / Finance / Accounting,business,10,True
+273,2023,Business / Finance / Accounting,business,27,False
+274,2023,Business / Finance / Accounting,business,23,True
+275,2023,Business / Finance / Accounting,business,30,False
+276,2023,Business / Finance / Accounting,business,25,False
+277,2023,General Humanities / Social Sciences / Education,arts,34,False
+278,2023,General Humanities / Social Sciences / Education,arts,32,False
+279,2023,General Humanities / Social Sciences / Education,arts,20,True
+280,2023,General Humanities / Social Sciences / Education,arts,29,False
+281,2023,General Humanities / Social Sciences / Education,arts,20,True
+282,2023,General Humanities / Social Sciences / Education,arts,13,True
+283,2023,General Humanities / Social Sciences / Education,arts,14,True
+284,2023,General Humanities / Social Sciences / Education,arts,22,True
+285,2023,General Humanities / Social Sciences / Education,arts,13,True
+286,2023,General Humanities / Social Sciences / Education,arts,8,True
+287,2023,General Humanities / Social Sciences / Education,arts,13,True
+288,2023,General Humanities / Social Sciences / Education,arts,16,True
+289,2023,Open Public-University Entry (general eligibility floor),general,11,True
+290,2023,Open Public-University Entry (general eligibility floor),general,20,True
+291,2023,Open Public-University Entry (general eligibility floor),general,15,True
+292,2023,Open Public-University Entry (general eligibility floor),general,10,True
+293,2023,Open Public-University Entry (general eligibility floor),general,27,True
+294,2023,Open Public-University Entry (general eligibility floor),general,32,True
+295,2023,Open Public-University Entry (general eligibility floor),general,32,True
+296,2023,Open Public-University Entry (general eligibility floor),general,43,False
+297,2023,Open Public-University Entry (general eligibility floor),general,7,True
+298,2023,Open Public-University Entry (general eligibility floor),general,42,False
+299,2023,Open Public-University Entry (general eligibility floor),general,6,False
+300,2023,Open Public-University Entry (general eligibility floor),general,25,True
+301,2023,Private University Entry,general,32,True
+302,2023,Private University Entry,general,40,False
+303,2023,Private University Entry,general,20,True
+304,2023,Private University Entry,general,23,True
+305,2023,Private University Entry,general,7,True
+306,2023,Private University Entry,general,31,True
+307,2023,Private University Entry,general,35,False
+308,2023,Private University Entry,general,45,False
+309,2023,Private University Entry,general,31,True
+310,2023,Private University Entry,general,7,True
+311,2023,Private University Entry,general,33,True
+312,2023,Private University Entry,general,35,True
+313,2023,HND / Polytechnic (Technical University) Tracks,technical,22,True
+314,2023,HND / Polytechnic (Technical University) Tracks,technical,19,True
+315,2023,HND / Polytechnic (Technical University) Tracks,technical,27,True
+316,2023,HND / Polytechnic (Technical University) Tracks,technical,30,True
+317,2023,HND / Polytechnic (Technical University) Tracks,technical,32,True
+318,2023,HND / Polytechnic (Technical University) Tracks,technical,11,True
+319,2023,HND / Polytechnic (Technical University) Tracks,technical,53,False
+320,2023,HND / Polytechnic (Technical University) Tracks,technical,28,True
+321,2023,HND / Polytechnic (Technical University) Tracks,technical,10,True
+322,2023,HND / Polytechnic (Technical University) Tracks,technical,47,True
+323,2023,HND / Polytechnic (Technical University) Tracks,technical,7,False
+324,2023,HND / Polytechnic (Technical University) Tracks,technical,18,True
+325,2024,Medicine / Dentistry,science,15,False
+326,2024,Medicine / Dentistry,science,8,True
+327,2024,Medicine / Dentistry,science,7,True
+328,2024,Medicine / Dentistry,science,9,True
+329,2024,Medicine / Dentistry,science,10,True
+330,2024,Medicine / Dentistry,science,8,True
+331,2024,Medicine / Dentistry,science,17,False
+332,2024,Medicine / Dentistry,science,18,False
+333,2024,Medicine / Dentistry,science,10,True
+334,2024,Medicine / Dentistry,science,6,False
+335,2024,Medicine / Dentistry,science,15,False
+336,2024,Medicine / Dentistry,science,12,False
+337,2024,Physician Assistantship / Allied Health,science,28,False
+338,2024,Physician Assistantship / Allied Health,science,24,True
+339,2024,Physician Assistantship / Allied Health,science,26,False
+340,2024,Physician Assistantship / Allied Health,science,28,False
+341,2024,Physician Assistantship / Allied Health,science,33,False
+342,2024,Physician Assistantship / Allied Health,science,31,False
+343,2024,Physician Assistantship / Allied Health,science,24,True
+344,2024,Physician Assistantship / Allied Health,science,17,True
+345,2024,Physician Assistantship / Allied Health,science,27,False
+346,2024,Physician Assistantship / Allied Health,science,22,True
+347,2024,Physician Assistantship / Allied Health,science,6,False
+348,2024,Physician Assistantship / Allied Health,science,32,False
+349,2024,Engineering / Pharmacy / Actuarial Science,science,19,False
+350,2024,Engineering / Pharmacy / Actuarial Science,science,26,False
+351,2024,Engineering / Pharmacy / Actuarial Science,science,20,False
+352,2024,Engineering / Pharmacy / Actuarial Science,science,19,False
+353,2024,Engineering / Pharmacy / Actuarial Science,science,22,False
+354,2024,Engineering / Pharmacy / Actuarial Science,science,14,True
+355,2024,Engineering / Pharmacy / Actuarial Science,science,23,False
+356,2024,Engineering / Pharmacy / Actuarial Science,science,20,False
+357,2024,Engineering / Pharmacy / Actuarial Science,science,24,False
+358,2024,Engineering / Pharmacy / Actuarial Science,science,13,True
+359,2024,Engineering / Pharmacy / Actuarial Science,science,8,True
+360,2024,Engineering / Pharmacy / Actuarial Science,science,20,False
+361,2024,General Science (non-clinical),science,20,True
+362,2024,General Science (non-clinical),science,27,False
+363,2024,General Science (non-clinical),science,6,True
+364,2024,General Science (non-clinical),science,16,True
+365,2024,General Science (non-clinical),science,12,True
+366,2024,General Science (non-clinical),science,14,True
+367,2024,General Science (non-clinical),science,34,False
+368,2024,General Science (non-clinical),science,34,False
+369,2024,General Science (non-clinical),science,6,True
+370,2024,General Science (non-clinical),science,12,True
+371,2024,General Science (non-clinical),science,29,False
+372,2024,General Science (non-clinical),science,23,True
+373,2024,Business / Finance / Accounting,business,28,False
+374,2024,Business / Finance / Accounting,business,28,False
+375,2024,Business / Finance / Accounting,business,31,True
+376,2024,Business / Finance / Accounting,business,15,True
+377,2024,Business / Finance / Accounting,business,28,False
+378,2024,Business / Finance / Accounting,business,27,False
+379,2024,Business / Finance / Accounting,business,21,True
+380,2024,Business / Finance / Accounting,business,17,True
+381,2024,Business / Finance / Accounting,business,29,False
+382,2024,Business / Finance / Accounting,business,17,True
+383,2024,Business / Finance / Accounting,business,14,True
+384,2024,Business / Finance / Accounting,business,13,True
+385,2024,General Humanities / Social Sciences / Education,arts,12,True
+386,2024,General Humanities / Social Sciences / Education,arts,29,False
+387,2024,General Humanities / Social Sciences / Education,arts,30,False
+388,2024,General Humanities / Social Sciences / Education,arts,12,True
+389,2024,General Humanities / Social Sciences / Education,arts,21,True
+390,2024,General Humanities / Social Sciences / Education,arts,24,False
+391,2024,General Humanities / Social Sciences / Education,arts,22,True
+392,2024,General Humanities / Social Sciences / Education,arts,9,True
+393,2024,General Humanities / Social Sciences / Education,arts,15,True
+394,2024,General Humanities / Social Sciences / Education,arts,11,True
+395,2024,General Humanities / Social Sciences / Education,arts,28,False
+396,2024,General Humanities / Social Sciences / Education,arts,14,True
+397,2024,Open Public-University Entry (general eligibility floor),general,9,True
+398,2024,Open Public-University Entry (general eligibility floor),general,14,True
+399,2024,Open Public-University Entry (general eligibility floor),general,37,False
+400,2024,Open Public-University Entry (general eligibility floor),general,6,True
+401,2024,Open Public-University Entry (general eligibility floor),general,36,True
+402,2024,Open Public-University Entry (general eligibility floor),general,27,True
+403,2024,Open Public-University Entry (general eligibility floor),general,9,True
+404,2024,Open Public-University Entry (general eligibility floor),general,36,True
+405,2024,Open Public-University Entry (general eligibility floor),general,10,True
+406,2024,Open Public-University Entry (general eligibility floor),general,10,True
+407,2024,Open Public-University Entry (general eligibility floor),general,9,True
+408,2024,Open Public-University Entry (general eligibility floor),general,42,False
+409,2024,Private University Entry,general,11,False
+410,2024,Private University Entry,general,13,True
+411,2024,Private University Entry,general,32,True
+412,2024,Private University Entry,general,45,False
+413,2024,Private University Entry,general,39,False
+414,2024,Private University Entry,general,34,True
+415,2024,Private University Entry,general,43,False
+416,2024,Private University Entry,general,25,True
+417,2024,Private University Entry,general,9,True
+418,2024,Private University Entry,general,12,False
+419,2024,Private University Entry,general,19,True
+420,2024,Private University Entry,general,22,True
+421,2024,HND / Polytechnic (Technical University) Tracks,technical,16,True
+422,2024,HND / Polytechnic (Technical University) Tracks,technical,41,True
+423,2024,HND / Polytechnic (Technical University) Tracks,technical,6,True
+424,2024,HND / Polytechnic (Technical University) Tracks,technical,50,False
+425,2024,HND / Polytechnic (Technical University) Tracks,technical,24,True
+426,2024,HND / Polytechnic (Technical University) Tracks,technical,24,True
+427,2024,HND / Polytechnic (Technical University) Tracks,technical,50,False
+428,2024,HND / Polytechnic (Technical University) Tracks,technical,10,True
+429,2024,HND / Polytechnic (Technical University) Tracks,technical,22,True
+430,2024,HND / Polytechnic (Technical University) Tracks,technical,46,True
+431,2024,HND / Polytechnic (Technical University) Tracks,technical,57,False
+432,2024,HND / Polytechnic (Technical University) Tracks,technical,33,True
+433,2025,Medicine / Dentistry,science,9,True
+434,2025,Medicine / Dentistry,science,20,False
+435,2025,Medicine / Dentistry,science,8,True
+436,2025,Medicine / Dentistry,science,8,True
+437,2025,Medicine / Dentistry,science,15,False
+438,2025,Medicine / Dentistry,science,15,False
+439,2025,Medicine / Dentistry,science,13,False
+440,2025,Medicine / Dentistry,science,17,False
+441,2025,Medicine / Dentistry,science,12,False
+442,2025,Medicine / Dentistry,science,14,False
+443,2025,Medicine / Dentistry,science,13,True
+444,2025,Medicine / Dentistry,science,6,True
+445,2025,Physician Assistantship / Allied Health,science,29,False
+446,2025,Physician Assistantship / Allied Health,science,14,True
+447,2025,Physician Assistantship / Allied Health,science,13,False
+448,2025,Physician Assistantship / Allied Health,science,32,False
+449,2025,Physician Assistantship / Allied Health,science,24,False
+450,2025,Physician Assistantship / Allied Health,science,30,False
+451,2025,Physician Assistantship / Allied Health,science,14,True
+452,2025,Physician Assistantship / Allied Health,science,30,False
+453,2025,Physician Assistantship / Allied Health,science,21,True
+454,2025,Physician Assistantship / Allied Health,science,20,False
+455,2025,Physician Assistantship / Allied Health,science,11,False
+456,2025,Physician Assistantship / Allied Health,science,19,True
+457,2025,Engineering / Pharmacy / Actuarial Science,science,21,False
+458,2025,Engineering / Pharmacy / Actuarial Science,science,21,False
+459,2025,Engineering / Pharmacy / Actuarial Science,science,16,True
+460,2025,Engineering / Pharmacy / Actuarial Science,science,9,True
+461,2025,Engineering / Pharmacy / Actuarial Science,science,16,True
+462,2025,Engineering / Pharmacy / Actuarial Science,science,21,False
+463,2025,Engineering / Pharmacy / Actuarial Science,science,18,True
+464,2025,Engineering / Pharmacy / Actuarial Science,science,23,True
+465,2025,Engineering / Pharmacy / Actuarial Science,science,8,True
+466,2025,Engineering / Pharmacy / Actuarial Science,science,16,True
+467,2025,Engineering / Pharmacy / Actuarial Science,science,18,True
+468,2025,Engineering / Pharmacy / Actuarial Science,science,6,True
+469,2025,General Science (non-clinical),science,23,True
+470,2025,General Science (non-clinical),science,7,True
+471,2025,General Science (non-clinical),science,17,True
+472,2025,General Science (non-clinical),science,21,True
+473,2025,General Science (non-clinical),science,30,True
+474,2025,General Science (non-clinical),science,14,True
+475,2025,General Science (non-clinical),science,15,True
+476,2025,General Science (non-clinical),science,28,False
+477,2025,General Science (non-clinical),science,6,False
+478,2025,General Science (non-clinical),science,25,False
+479,2025,General Science (non-clinical),science,28,False
+480,2025,General Science (non-clinical),science,23,True
+481,2025,Business / Finance / Accounting,business,19,True
+482,2025,Business / Finance / Accounting,business,32,False
+483,2025,Business / Finance / Accounting,business,20,False
+484,2025,Business / Finance / Accounting,business,26,False
+485,2025,Business / Finance / Accounting,business,21,False
+486,2025,Business / Finance / Accounting,business,15,True
+487,2025,Business / Finance / Accounting,business,14,True
+488,2025,Business / Finance / Accounting,business,21,False
+489,2025,Business / Finance / Accounting,business,13,True
+490,2025,Business / Finance / Accounting,business,10,True
+491,2025,Business / Finance / Accounting,business,25,False
+492,2025,Business / Finance / Accounting,business,34,False
+493,2025,General Humanities / Social Sciences / Education,arts,8,True
+494,2025,General Humanities / Social Sciences / Education,arts,31,False
+495,2025,General Humanities / Social Sciences / Education,arts,16,False
+496,2025,General Humanities / Social Sciences / Education,arts,22,True
+497,2025,General Humanities / Social Sciences / Education,arts,6,True
+498,2025,General Humanities / Social Sciences / Education,arts,15,True
+499,2025,General Humanities / Social Sciences / Education,arts,24,False
+500,2025,General Humanities / Social Sciences / Education,arts,21,True
+501,2025,General Humanities / Social Sciences / Education,arts,20,True
+502,2025,General Humanities / Social Sciences / Education,arts,17,True
+503,2025,General Humanities / Social Sciences / Education,arts,30,False
+504,2025,General Humanities / Social Sciences / Education,arts,20,False
+505,2025,Open Public-University Entry (general eligibility floor),general,18,False
+506,2025,Open Public-University Entry (general eligibility floor),general,21,True
+507,2025,Open Public-University Entry (general eligibility floor),general,20,True
+508,2025,Open Public-University Entry (general eligibility floor),general,32,True
+509,2025,Open Public-University Entry (general eligibility floor),general,36,True
+510,2025,Open Public-University Entry (general eligibility floor),general,30,True
+511,2025,Open Public-University Entry (general eligibility floor),general,15,True
+512,2025,Open Public-University Entry (general eligibility floor),general,8,True
+513,2025,Open Public-University Entry (general eligibility floor),general,43,False
+514,2025,Open Public-University Entry (general eligibility floor),general,12,True
+515,2025,Open Public-University Entry (general eligibility floor),general,34,True
+516,2025,Open Public-University Entry (general eligibility floor),general,35,True
+517,2025,Private University Entry,general,15,True
+518,2025,Private University Entry,general,15,True
+519,2025,Private University Entry,general,22,True
+520,2025,Private University Entry,general,31,True
+521,2025,Private University Entry,general,27,True
+522,2025,Private University Entry,general,40,False
+523,2025,Private University Entry,general,26,True
+524,2025,Private University Entry,general,37,False
+525,2025,Private University Entry,general,8,True
+526,2025,Private University Entry,general,21,True
+527,2025,Private University Entry,general,24,False
+528,2025,Private University Entry,general,11,True
+529,2025,HND / Polytechnic (Technical University) Tracks,technical,12,True
+530,2025,HND / Polytechnic (Technical University) Tracks,technical,51,False
+531,2025,HND / Polytechnic (Technical University) Tracks,technical,34,True
+532,2025,HND / Polytechnic (Technical University) Tracks,technical,25,False
+533,2025,HND / Polytechnic (Technical University) Tracks,technical,8,True
+534,2025,HND / Polytechnic (Technical University) Tracks,technical,9,True
+535,2025,HND / Polytechnic (Technical University) Tracks,technical,29,True
+536,2025,HND / Polytechnic (Technical University) Tracks,technical,21,True
+537,2025,HND / Polytechnic (Technical University) Tracks,technical,42,True
+538,2025,HND / Polytechnic (Technical University) Tracks,technical,17,True
+539,2025,HND / Polytechnic (Technical University) Tracks,technical,11,True
+540,2025,HND / Polytechnic (Technical University) Tracks,technical,30,True

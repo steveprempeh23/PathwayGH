@@ -83,7 +83,7 @@ def test_institutions_example_populated_from_real_sourced_data():
 def test_every_category_present_in_result():
     result = check_eligibility(aggregate=20, track="general", electives={})
     categories = {m.category for m in result.matches}
-    assert len(categories) == 8
+    assert len(categories) == 9
 
 
 def test_aggregate_better_than_bands_best_is_still_eligible():
@@ -114,6 +114,25 @@ def test_aggregate_worse_than_bands_worst_is_ineligible():
     )
     pa = next(m for m in result.matches if "Physician Assistantship" in m.category)
     assert pa.aggregate_eligible is False
+
+
+def test_private_university_entry_institutions_are_real_and_dont_duplicate_public_ones():
+    """UPSA and GCTU are public (already in 'Open Public-University Entry')
+    and must NOT also appear under 'Private University Entry' - a live
+    correction of the user-supplied school list that originally
+    misclassified both as private (see
+    programmes.json's _private_university_category_note)."""
+    result = check_eligibility(aggregate=20, track="general", electives={})
+    private = next(m for m in result.matches if m.category == "Private University Entry")
+    public_floor = next(
+        m for m in result.matches if m.category == "Open Public-University Entry (general eligibility floor)"
+    )
+    assert "UPSA" not in private.institutions_example
+    assert "GCTU" not in private.institutions_example
+    assert "UPSA" in public_floor.institutions_example
+    assert "GCTU" in public_floor.institutions_example
+    assert "Ashesi University" in private.institutions_example
+    assert len(private.institutions_example) == 15
 
 
 def test_physician_assistantship_eligible_with_right_electives_and_c6_grades():

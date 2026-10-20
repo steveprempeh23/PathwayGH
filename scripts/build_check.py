@@ -64,6 +64,7 @@ def check_tool_schemas_match_models():
         "retrieve_context",
         "analyze_outcomes",
         "list_institutions",
+        "lookup_institution_programmes",
         "submit_recommendation",
     }, f"unexpected tool set: {names}"
 
@@ -73,7 +74,7 @@ def check_datasets_load():
     from app.tools.eligibility_checker import _PROGRAMMES
 
     assert len(POINTS) == 9, "expected 9 WASSCE grades"
-    assert len(_PROGRAMMES) == 8, "expected 8 programme categories"
+    assert len(_PROGRAMMES) == 9, "expected 9 programme categories"
 
 
 def check_chunking_runs_on_real_source():
@@ -112,7 +113,7 @@ def main_check() -> int:
         ("Module imports", check_imports),
         ("main.py app loads", check_main_app_loads),
         ("Tool schema names match orchestrator expectations", check_tool_schemas_match_models),
-        ("Structured datasets load (9 grades, 8 programmes)", check_datasets_load),
+        ("Structured datasets load (9 grades, 9 programmes)", check_datasets_load),
         ("Chunker runs on real source document", check_chunking_runs_on_real_source),
         ("/health endpoint responds", check_health_endpoint),
     ]

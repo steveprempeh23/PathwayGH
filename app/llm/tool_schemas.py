@@ -128,6 +128,42 @@ LIST_INSTITUTIONS_TOOL = {
     },
 }
 
+LOOKUP_INSTITUTION_PROGRAMMES_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "lookup_institution_programmes",
+        "description": (
+            "Get REAL, sourced degree programmes and cutoff points for one "
+            "NAMED institution, copied verbatim from institution_programmes.json. "
+            "ALWAYS call this before naming any specific programme at a specific "
+            "institution (e.g. 'Bachelor of Medicine and Surgery at UDS') - you "
+            "have been observed, live, inventing institution-specific programme "
+            "titles with no real data behind them - see docs/evaluation.md "
+            "Failure 13. Only University of Ghana and KNUST have real data in "
+            "this tool so far; for every other institution it will return "
+            "has_data_for_institution=False - when that happens, say plainly "
+            "you don't have per-programme data for that institution yet, never "
+            "invent programme names to fill the gap. UG's data comes from UG's "
+            "own official admissions page; KNUST's comes from a third-party "
+            "site, so treat KNUST's confidence field accordingly."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "institution": {
+                    "type": "string",
+                    "description": "Exact institution name, e.g. 'University of Ghana' or 'KNUST'",
+                },
+                "keyword": {
+                    "type": "string",
+                    "description": "Optional substring to filter programme names, e.g. 'medicine' or 'engineering'",
+                },
+            },
+            "required": ["institution"],
+        },
+    },
+}
+
 SUBMIT_RECOMMENDATION_TOOL = {
     "type": "function",
     "function": {
@@ -161,5 +197,6 @@ ALL_TOOLS = [
     RETRIEVE_CONTEXT_TOOL,
     ANALYZE_OUTCOMES_TOOL,
     LIST_INSTITUTIONS_TOOL,
+    LOOKUP_INSTITUTION_PROGRAMMES_TOOL,
     SUBMIT_RECOMMENDATION_TOOL,
 ]

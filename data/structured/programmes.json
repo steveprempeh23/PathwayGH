@@ -14,7 +14,13 @@
     "https://unicheckgh.com/programs/mbchb-medicine-uds",
     "https://en.wikipedia.org/wiki/University_of_Health_and_Allied_Sciences",
     "https://cohk.edu.gh/index.php/academics/departments-programmes/department-of-physician-assistantship-medical/",
-    "https://ghanaunichecker.com/programmes/uds/bsc-physician-assistantship"
+    "https://ghanaunichecker.com/programmes/uds/bsc-physician-assistantship",
+    "https://en.wikipedia.org/wiki/Ghana_Tertiary_Education_Commission",
+    "https://patstune.org/2025/08/08/all-accredited-public-and-private-universities-colleges-in-ghana/",
+    "https://en.wikipedia.org/wiki/List_of_universities_in_Ghana",
+    "https://trenderhq.com/full-list-of-accredited-universities-in-ghana/",
+    "https://www.presbyuniversity.edu.gh/site/accreditation-and-affliation/",
+    "https://knutsford.edu.gh/"
   ],
   "_retrieved": "2026-10-16",
   "_note": "Aggregate bands below are of two kinds, marked explicitly per category: 'verified_example'/'verified_examples' means drawn from a specific cited cutoff case for a specific institution, programme and admission cycle; 'approximate_band' means a general guidance range, not any one institution's published cutoff. IMPORTANT, found while sourcing the 2026/2027 figures below: different news sources reported slightly different cut-offs for the SAME programme in the SAME cycle (e.g. KNUST Medicine was reported as aggregate 6 in one 2026/27 article and aggregate 7 in another, both citing KNUST's own release). This is real-world evidence that even 'verified' secondary-source figures can disagree, and is exactly why every verified_example below states its specific source and cycle rather than presenting one number as definitive. Neither kind should be presented to a user as a live, guaranteed-current cutoff - the system must state this distinction when answering, and must not imply a live CSSPS/university feed. None of this is historical admissions RECORDS (actual past admitted students' data) - that data is not publicly available anywhere; see docs/extending-data.md.",
@@ -296,6 +302,49 @@
       "track": "general"
     },
     {
+      "category": "Private University Entry",
+      "example_programmes": [
+        "Entry-level eligibility for most private-university programmes"
+      ],
+      "aggregate_band": {
+        "best": 6,
+        "worst": 36
+      },
+      "confidence": "approximate_band",
+      "verified_example": "The mandatory C6+ in English Language, Core Mathematics, and a relevant third core subject (see mandatory_credit_gate in grading_scale.json) applies to ALL tertiary entry in Ghana, public or private. Beyond that floor, no single published aggregate ceiling covers private universities as a group - unlike the public floor's commonly-cited 36, admission thresholds vary institution to institution, and several (e.g. Ashesi University) are known to be considerably more selective in practice than a generic floor would suggest. Treat this band as a loose floor, not a promise that any listed institution is equally easy to enter.",
+      "required_core": [
+        "English Language",
+        "Core Mathematics",
+        "Integrated Science or Social Studies (track-dependent)"
+      ],
+      "required_electives": {
+        "type": "choose_n",
+        "n": 3,
+        "options": [
+          "any approved elective relevant to intended programme"
+        ]
+      },
+      "elective_min_grade": "C6",
+      "institutions_example": [
+        "Ashesi University",
+        "Central University",
+        "Methodist University Ghana",
+        "Presbyterian University, Ghana",
+        "Pentecost University",
+        "Valley View University",
+        "Christian Service University College",
+        "Wisconsin International University College",
+        "Islamic University College Ghana",
+        "Academic City University College",
+        "Lancaster University Ghana",
+        "Webster University Ghana",
+        "Dominion University College",
+        "Knutsford University",
+        "Catholic University of Ghana"
+      ],
+      "track": "general"
+    },
+    {
       "category": "HND / Polytechnic (Technical University) Tracks",
       "example_programmes": [
         "HND Accounting",
@@ -336,5 +385,6 @@
     }
   ],
   "_institutions_example_note": "institutions_example lists below were expanded on 2026-10-18 from GTEC's 2026 list of the 16 real public Traditional Universities and 10 real public Technical Universities in Ghana (see _source_urls). For Medicine/Dentistry, Engineering/Pharmacy/Actuarial Science, General Science, Business/Finance/Accounting, and General Humanities/Social Sciences/Education, only universities independently documented as actually running a programme in that category are listed - this is still a representative sample, not a claim that every listed university offers every example programme in that category, and not a guarantee of admission. For 'Open Public-University Entry' and 'HND / Polytechnic Tracks', the full real list of all 16 Traditional and all 10 Technical public universities is given, since those two categories are defined as the general floor / the technical-university track as a whole, not a specific programme.",
-  "_physician_assistantship_note": "Added 2026-10-18 as a new, 8th programme_category. Scope deliberately limited to PUBLIC universities (UHAS, UDS), matching every other category in this file - several private colleges also run Physician Assistantship programmes but are out of scope here. elective_min_grade is C6 (an ordinary WASSCE credit pass), deliberately lower than Medicine/Dentistry's B3, even though both categories share the same three required electives - this is a real, sourced difference in competitiveness, not a copy-paste of the Medicine entry."
+  "_physician_assistantship_note": "Added 2026-10-18 as a new, 8th programme_category. Scope deliberately limited to PUBLIC universities (UHAS, UDS), matching every other category in this file - several private colleges also run Physician Assistantship programmes but are out of scope here. elective_min_grade is C6 (an ordinary WASSCE credit pass), deliberately lower than Medicine/Dentistry's B3, even though both categories share the same three required electives - this is a real, sourced difference in competitiveness, not a copy-paste of the Medicine entry.",
+  "_private_university_category_note": "Added 2026-10-20 as a new, 9th programme_category, from a user-supplied 37-school list. Two of the user's 17 'private' entries - UPSA and GCTU - were corrected to public (both are GTEC Traditional Universities, already in 'Open Public-University Entry', established by their own Acts of Parliament) rather than filed twice under different statuses. The remaining 15 were independently cross-checked against GTEC's own accredited-institutions list and multiple secondary sources (see _source_urls) before being added - not accepted on the user's list alone. No per-institution aggregate cutoffs or programme lists exist for any of these 15 yet - that is real, separate sourcing work, same as every other honest gap in this file."
 }

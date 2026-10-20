@@ -610,6 +610,78 @@ above only proves the *deterministic field* is correct - it deliberately
 does not (and cannot) assert the model's own prose is free of invented
 names.
 
+### Failure 13: fabricated institution-specific programme titles (observed live, Oct 2026)
+
+**What happened:** a student asked what programmes they could do "at UG or
+KNUST or other related fields." The model answered with a confident list:
+"Bachelor of Medicine and Surgery at University of Ghana... Bachelor of
+Medicine and Surgery at KNUST... at UCC... at UDS... at UHAS," plus
+invented nursing programmes at all five, with no real data behind any of
+it. `programmes.json` only ever had category-level `institutions_example`
+lists ("which schools offer Medicine broadly") - it never had
+institution-specific programme titles. The model filled that gap itself.
+
+**Why this is the same failure shape as Failure 12, one level deeper:**
+Failure 12 was the model inventing *which schools* belong to a category.
+Failure 13 is the model inventing *which exact programmes* a specific
+school runs - a more specific, more confident-sounding claim, and
+therefore more misleading if wrong.
+
+**Fix, same pattern as Failures 3/9/11/12 - code first, prompt second:**
+1. The user supplied two real spreadsheets: University of Ghana's own
+   official cut-off page (admissions.ug.edu.gh) and a KNUST cut-off list
+   from a third-party site (ghanaunichecker.com, so flagged
+   lower-confidence than UG's). Transcribed verbatim - including UG's
+   compound cutoff values like "7(8)" and "16(24)M" - into
+   `data/structured/institution_programmes.json`: 197 real rows (63 UG, 134
+   KNUST).
+2. New tool `lookup_institution_programmes`
+   (`app/tools/institution_programme_lookup.py`,
+   `app/models/institution_programmes.py`) - exact-match on institution
+   name, optional keyword filter on programme name, returns real rows or
+   `has_data_for_institution=False` for any institution without data
+   (every institution except UG and KNUST, for now). Added to `ALL_TOOLS`.
+3. `system_prompt.py` rule 5e: never name an institution-specific programme
+   from memory; always call the tool first; say plainly when
+   `has_data_for_institution` is `False` rather than filling the gap.
+4. **The part that holds regardless of prompt compliance:** threaded
+   through `orchestrator.py` exactly like `cohort_stats_result`/
+   `institutions_lookup_result`, surfaced as `institution_programmes` on
+   `handle_turn`/`handle_turn_stream`, added to `ChatResponse`
+   (`app/api/schemas.py`), rendered as its own table card in
+   `static/index.html` with the real `cutoff_display` value shown verbatim.
+
+Verified with
+`test_institution_programmes_carries_real_rows_even_when_model_narration_invents_others`
+and `test_institution_programmes_no_data_flagged_honestly`
+(`tests/test_orchestrator.py`).
+
+**What this doesn't fix:** the same honest gap as Failure 12 - nothing
+code-level stops the model's own reply *text* from still naming a
+programme/institution pairing the tool never returned. And the coverage
+itself is narrow: only 2 of the many institutions now in
+`programmes.json` (UG and KNUST) have real per-programme data; every
+other institution - including the entire new "Private University Entry"
+category - still has none, and the tool is designed to say so plainly
+rather than quietly degrade to a category-level guess.
+
+### Addendum: correcting the user-supplied private-university list
+
+Alongside Failure 13's fix, the user supplied a 37-school list (10 public
+traditional, 10 public technical, 17 labelled "private") to add to the
+data. Two of the 17 - University of Professional Studies, Accra (UPSA)
+and Ghana Communication Technology University (GCTU) - are factually
+PUBLIC Traditional Universities under GTEC's own classification (both
+established by their own Acts of Parliament; already sourced and present
+in this file's "Open Public-University Entry" category). They were
+corrected rather than filed twice under conflicting statuses. The
+remaining 15 were independently verified against GTEC's own
+accredited-institutions list and multiple cross-referencing sources
+before being added as a new "Private University Entry" category - not
+accepted on the user's list alone, consistent with every other addition
+in this file requiring its own citable source rather than inheriting
+whatever confidence the person asking happened to have.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

@@ -304,6 +304,75 @@ def test_institutions_lookup_carries_real_list_even_when_model_narration_invents
     assert "KNUST" not in result["institutions_lookup"]["institutions_example"]
 
 
+def test_institution_programmes_carries_real_rows_even_when_model_narration_invents_others():
+    """Regression test for Failure 13 (docs/evaluation.md): a live model
+    call, asked about programmes at named institutions, invented
+    institution-specific degree titles ("Bachelor of Medicine and Surgery
+    at UDS", "Bachelor of Arts in English at University of Ghana") with no
+    real data behind any of it. The fix (mirroring Failure 12's fix) is
+    that result['institution_programmes']['matches'] must carry the real,
+    sourced rows from institution_programmes.json, independent of whatever
+    the model's own reply text invents.
+    """
+    fake = FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {
+                        "name": "lookup_institution_programmes",
+                        "arguments": {"institution": "University of Ghana", "keyword": "medicine"},
+                    }
+                ]
+            ),
+            # Deliberately invents a programme/institution pairing beyond
+            # what the tool actually returned - exactly what the live
+            # model did for UDS.
+            _assistant(
+                content=(
+                    "You're eligible for Bachelor of Medicine and Bachelor of "
+                    "Surgery at University of Ghana, and also Bachelor of "
+                    "Medicine and Surgery at UDS."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn(
+        "session-programmes", "what programmes can I do in medicine at UG", chat_fn=fake
+    )
+
+    # The model's text can invent an institution/programme pairing...
+    assert "UDS" in result["reply"]
+    # ...but institution_programmes must carry only the real rows for the
+    # institution that was actually queried.
+    lookup = result["institution_programmes"]
+    assert lookup is not None
+    assert lookup["has_data_for_institution"] is True
+    programmes = [m["programme"] for m in lookup["matches"]]
+    assert "Bachelor of Medicine and Bachelor of Surgery" in programmes
+    assert all(m["institution"] == "University of Ghana" for m in lookup["matches"])
+
+
+def test_institution_programmes_no_data_flagged_honestly():
+    """UDS has no per-programme data on file - the tool must say so
+    plainly (has_data_for_institution=False), never silently return an
+    empty-looking list that could be mistaken for 'UDS offers nothing'."""
+    fake = FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {"name": "lookup_institution_programmes", "arguments": {"institution": "UDS"}}
+                ]
+            ),
+            _assistant(content="I don't have per-programme data for UDS yet."),
+        ]
+    )
+    result = orchestrator.handle_turn("session-programmes-2", "programmes at UDS", chat_fn=fake)
+    lookup = result["institution_programmes"]
+    assert lookup["has_data_for_institution"] is False
+    assert lookup["matches"] == []
+
+
 def test_analyze_outcomes_unknown_category_error_fed_back_not_raised():
     fake = FakeChat(
         [

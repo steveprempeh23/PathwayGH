@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.models.analysis import CohortStats
 from app.models.eligibility import EligibilityResult
+from app.models.institution_programmes import InstitutionProgrammeLookup
 from app.models.institutions import InstitutionsLookup
 from app.models.grading import AggregateResult, GradeInput
 from app.models.recommendation import Recommendation
@@ -59,6 +60,11 @@ class ChatResponse(BaseModel):
     weren't in the real institutions_example list for the category it was
     asked about). Same reasoning as cohort_stats above for why this needs
     its own schema field rather than being left implicit."""
+    institution_programmes: Optional[InstitutionProgrammeLookup] = None
+    """The real lookup_institution_programmes result for this turn, if it
+    ran - see docs/evaluation.md Failure 13 (model invented institution-
+    specific programme titles with no real data behind them). Same
+    reasoning as the fields above."""
 
 
 class CalculateRequest(BaseModel):

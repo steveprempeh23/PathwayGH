@@ -178,7 +178,7 @@ def test_calculate_endpoint_is_deterministic_and_matches_real_categories():
     body = response.json()
     assert body["aggregate"]["aggregate"] == 8  # within Medicine's 6-10 band
     categories = {m["category"] for m in body["eligibility"]["matches"]}
-    # The real 8 categories from programmes.json - not hallucinated ones.
+    # The real 9 categories from programmes.json - not hallucinated ones.
     assert categories == {
         "Medicine / Dentistry",
         "Physician Assistantship / Allied Health",
@@ -187,6 +187,7 @@ def test_calculate_endpoint_is_deterministic_and_matches_real_categories():
         "Business / Finance / Accounting",
         "General Humanities / Social Sciences / Education",
         "Open Public-University Entry (general eligibility floor)",
+        "Private University Entry",
         "HND / Polytechnic (Technical University) Tracks",
     }
     medicine = next(m for m in body["eligibility"]["matches"] if "Medicine" in m["category"])
