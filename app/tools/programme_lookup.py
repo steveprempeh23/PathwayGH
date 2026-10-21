@@ -56,3 +56,15 @@ def lookup_institutions(programme_category: str) -> InstitutionsLookup:
     raise ValueError(
         f"Unknown programme_category '{programme_category}'. Valid categories: {valid}"
     )
+
+
+def all_known_institution_names() -> set[str]:
+    """Every institution name that appears in any category's
+    institutions_example list, across the whole file. Used by
+    app/tools/institution_claim_guard.py to catch a reply naming a real
+    institution alongside an invented programme - see docs/evaluation.md
+    Failure 14."""
+    names: set[str] = set()
+    for prog in _load_programmes():
+        names.update(prog.get("institutions_example", []))
+    return names

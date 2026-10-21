@@ -34,6 +34,7 @@ from app.rag import retriever as rag_retriever
 from app.tools.aggregate_calculator import compute_aggregate
 from app.tools.data_analysis import analyze_outcomes
 from app.tools.eligibility_checker import check_eligibility
+from app.tools.institution_claim_guard import detect_unverified_institution_claims
 from app.tools.institution_programme_lookup import lookup_institution_programmes
 from app.tools.programme_lookup import lookup_institutions
 
@@ -190,6 +191,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
     cohort_stats_result = None
     institutions_lookup_result = None
     institution_programmes_result = None
+    verified_institutions: set[str] = set()
     retrieved_urls: set[str] = set()
 
     try:
@@ -198,7 +200,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
         return (
             None, None,
             {"reply": FALLBACK_LLM_UNAVAILABLE, "recommendation": None},
-            None, None, None, None, None,
+            None, None, None, None, None, None,
         )
 
     recommendation: Recommendation | None = None
@@ -231,6 +233,8 @@ def _resolve_tools(messages: list[dict], chat_fn):
                     institutions_lookup_result = extra["institutions_lookup"]
                 if "institution_programmes" in extra:
                     institution_programmes_result = extra["institution_programmes"]
+                    if institution_programmes_result.has_data_for_institution:
+                        verified_institutions.add(institution_programmes_result.institution)
                 if "retrieved_urls" in extra:
                     retrieved_urls |= extra["retrieved_urls"]
 
@@ -263,7 +267,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
                             None, None,
                             {"reply": FALLBACK_RECOMMENDATION_FAILED, "recommendation": None},
                             aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
-        institution_programmes_result,
+        institution_programmes_result, verified_institutions,
                         )
 
             messages.append(
@@ -277,7 +281,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
                 None, None,
                 {"reply": FALLBACK_LLM_UNAVAILABLE, "recommendation": None},
                 aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
-        institution_programmes_result,
+        institution_programmes_result, verified_institutions,
             )
 
         hops += 1
@@ -292,13 +296,13 @@ def _resolve_tools(messages: list[dict], chat_fn):
             None, None,
             {"reply": FALLBACK_TOO_MANY_TOOL_CALLS, "recommendation": None},
             aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
-        institution_programmes_result,
+        institution_programmes_result, verified_institutions,
         )
 
     return (
         response, recommendation, None,
         aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
-        institution_programmes_result,
+        institution_programmes_result, verified_institutions,
     )
 
 
@@ -382,7 +386,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
     (
         final_response, recommendation, early_result,
         aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
-        institution_programmes_result,
+        institution_programmes_result, verified_institutions,
     ) = _drain(_resolve_tools(messages, chat_fn))
     calculation = _build_calculation(aggregate_result, eligibility_result)
     cohort_stats = _build_cohort_stats(cohort_stats_result)
@@ -396,10 +400,23 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
         early_result["cohort_stats"] = cohort_stats
         early_result["institutions_lookup"] = institutions_lookup
         early_result["institution_programmes"] = institution_programmes
+        early_result["unverified_institution_claims"] = detect_unverified_institution_claims(
+            early_result["reply"], verified_institutions
+        )
         return early_result
 
     final_text = final_response["content"] or (
         "Here's my recommendation." if recommendation else ""
+    )
+    # Deterministic safety net for Failure 14 (docs/evaluation.md): the
+    # model has been observed naming specific programmes at institutions
+    # it never actually queried, across an entire structured answer, not
+    # just one extra school. This scans the FINAL reply text itself,
+    # independent of which tools the model chose to call, and flags any
+    # institution named alongside degree-sounding language that wasn't
+    # verified this turn via a real lookup_institution_programmes call.
+    unverified_institution_claims = detect_unverified_institution_claims(
+        final_text, verified_institutions
     )
 
     session_store.append_message(session_id, "user", user_message)
@@ -410,6 +427,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
         "cohort_stats": cohort_stats,
         "institutions_lookup": institutions_lookup,
         "institution_programmes": institution_programmes,
+        "unverified_institution_claims": unverified_institution_claims,
         "recommendation": recommendation.model_dump() if recommendation else None,
         "calculation": calculation,
     }
@@ -456,7 +474,7 @@ def handle_turn_stream(
         (
             final_response, recommendation, early_result,
             aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
-        institution_programmes_result,
+        institution_programmes_result, verified_institutions,
         ) = stop.value
     calculation = _build_calculation(aggregate_result, eligibility_result)
     cohort_stats = _build_cohort_stats(cohort_stats_result)
@@ -473,6 +491,9 @@ def handle_turn_stream(
             "cohort_stats": cohort_stats,
             "institutions_lookup": institutions_lookup,
             "institution_programmes": institution_programmes,
+            "unverified_institution_claims": detect_unverified_institution_claims(
+                early_result["reply"], verified_institutions
+            ),
         }
         return
 
@@ -493,6 +514,11 @@ def handle_turn_stream(
             yield {"type": "error", "message": FALLBACK_LLM_UNAVAILABLE}
             return
 
+    # Same Failure-14 safety net as handle_turn - see the comment there.
+    unverified_institution_claims = detect_unverified_institution_claims(
+        final_text, verified_institutions
+    )
+
     session_store.append_message(session_id, "user", user_message)
     session_store.append_message(session_id, "assistant", final_text)
 
@@ -503,4 +529,5 @@ def handle_turn_stream(
         "cohort_stats": cohort_stats,
         "institutions_lookup": institutions_lookup,
         "institution_programmes": institution_programmes,
+        "unverified_institution_claims": unverified_institution_claims,
     }

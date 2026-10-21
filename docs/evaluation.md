@@ -682,6 +682,71 @@ accepted on the user's list alone, consistent with every other addition
 in this file requiring its own citable source rather than inheriting
 whatever confidence the person asking happened to have.
 
+### Failure 14: model skips the tool entirely across a whole structured answer (observed live, Oct 2026)
+
+**What happened:** Failure 13's fix added a real `lookup_institution_programmes`
+tool and a prompt rule (5e) requiring the model to call it before naming
+any programme at a named institution. A student then asked "list the
+schools and programmes am eligible for" and got a full structured answer
+with invented degree titles - "Bachelor of Arts, Bachelor of Social
+Sciences, Bachelor of Education" at UCC, UEW, UDS, and AAMUSTED, none of
+which have any programme data on file. The model never called the tool
+once. On the next turn the student asked about Civil Engineering, and the
+model answered with "HND in Civil Engineering" at **all 10** technical
+universities - again, zero of which have any data (verified directly:
+`lookup_institution_programmes("Accra Technical University")` returns
+`has_data_for_institution: False`). Only on a third turn, when the student
+asked "what is this HND in Civil Engineering", did the model finally call
+the tool, discover nothing, and admit "I should not have mentioned it
+earlier."
+
+**Why this is a different failure from Failure 13, not just a repeat:**
+every previous fix in this document (Failures 3, 9, 11, 12, 13) assumed
+the model's prose might *add a little* on top of a correct tool call -
+one extra school in an otherwise-real list, say. This is categorically
+different: the model skipped the tool across an **entire** multi-paragraph
+answer, for multiple institutions, with full confidence, and only checked
+reality when directly challenged. A prompt rule and tool availability are
+not remotely sufficient against that pattern for an 8B local model.
+
+**Fix - the first in this project that doesn't correct a wrong value, but
+flags an absence of verification:** `app/tools/institution_claim_guard.py`
+scans the model's FINAL reply text (independent of which tools it chose
+to call) for any of the institution names already on file
+(`programme_lookup.all_known_institution_names()`) appearing alongside
+degree-sounding language ("Bachelor", "HND", "BSc", "Diploma", "Doctor
+of", etc.). Any institution flagged this way that was NOT verified this
+turn via a real `lookup_institution_programmes` call returning
+`has_data_for_institution=True` goes into a new `unverified_institution_claims`
+field - threaded through `orchestrator.py`'s `_resolve_tools` (a new
+`verified_institutions` set, populated whenever a real lookup succeeds),
+surfaced on `handle_turn`/`handle_turn_stream`, added to `ChatResponse`,
+and rendered in `static/index.html` as a prominent red warning banner -
+shown FIRST, before the other (reassuring) cards.
+
+Verified with
+`test_unverified_institution_claims_flagged_when_model_never_calls_the_tool`
+(reproduces the live failure verbatim: UCC and Accra Technical University
+both get flagged with no tool call at all) and
+`test_unverified_institution_claims_empty_when_tool_actually_verified_it`
+(University of Ghana, correctly verified via a real tool call, is NOT
+flagged even though its name and a degree keyword both appear in the
+reply) in `tests/test_orchestrator.py`.
+
+**What this doesn't fix, stated as plainly as the gap itself:** this
+cannot rewrite or remove the model's fabricated sentence - "UCC: Bachelor
+of Arts" still sits in the reply text exactly as the model wrote it. What
+changes is that the reply is now accompanied by a deterministic, code-level
+warning naming exactly which institutions in it are unverified, so the
+student is not left to trust confident-sounding prose alone. This is a
+containment measure, not a cure: the underlying cause - a small local
+model not reliably following a "call the tool first" instruction - is a
+known limitation of the model, not something any further prompt or even
+tool design can fully close. A larger or better-instruction-tuned model
+would likely need this safety net far less; it stays either way, because
+"the model should behave better" is not a load-bearing assumption this
+codebase makes anywhere else, and it shouldn't start here.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

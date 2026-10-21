@@ -65,6 +65,18 @@ class ChatResponse(BaseModel):
     ran - see docs/evaluation.md Failure 13 (model invented institution-
     specific programme titles with no real data behind them). Same
     reasoning as the fields above."""
+    unverified_institution_claims: list[str] = []
+    """Deterministic, code-level flag for Failure 14 (docs/evaluation.md):
+    institutions named in `reply` alongside degree-sounding language that
+    were NOT actually verified this turn via a real
+    lookup_institution_programmes call. Unlike the fields above, this is
+    not "the real version of a tool result" - it is a safety-net check
+    that runs on every reply regardless of which tools the model chose to
+    call, because a live run showed the model skipping the real tool
+    entirely across a whole structured answer rather than merely
+    embellishing a correct result. A non-empty list here means the
+    reply's own institution-specific claims should be treated as
+    unverified and the frontend should warn accordingly."""
 
 
 class CalculateRequest(BaseModel):

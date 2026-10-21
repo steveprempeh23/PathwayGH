@@ -373,6 +373,64 @@ def test_institution_programmes_no_data_flagged_honestly():
     assert lookup["matches"] == []
 
 
+def test_unverified_institution_claims_flagged_when_model_never_calls_the_tool():
+    """Regression test for Failure 14 (docs/evaluation.md): a live model
+    answered an entire structured "schools and programmes" question by
+    inventing institution-specific degree titles (Bachelor of Arts at UCC/
+    UEW/UDS/AAMUSTED, HND in Civil Engineering at all 10 technical
+    universities) WITHOUT calling lookup_institution_programmes even once.
+    Rule 5e and the Failure-13 tool existing were not enough on their own.
+    The fix is a deterministic, code-level scan of the final reply text
+    that flags any institution named alongside degree-sounding language
+    that was never actually verified this turn.
+    """
+    fake = FakeChat(
+        [
+            # The model answers directly with fabricated claims, calling
+            # no tool at all - exactly what happened live.
+            _assistant(
+                content=(
+                    "UCC: Bachelor of Arts, Bachelor of Social Sciences. "
+                    "Accra Technical University: HND in Civil Engineering."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn(
+        "session-claims", "list the schools and programmes I'm eligible for", chat_fn=fake
+    )
+
+    flagged = result["unverified_institution_claims"]
+    assert "UCC" in flagged
+    assert "Accra Technical University" in flagged
+
+
+def test_unverified_institution_claims_empty_when_tool_actually_verified_it():
+    """When the model DOES call lookup_institution_programmes and the
+    institution has real data, that institution must NOT be flagged, even
+    though its name and a degree keyword both appear in the reply."""
+    fake = FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {
+                        "name": "lookup_institution_programmes",
+                        "arguments": {"institution": "University of Ghana", "keyword": "medicine"},
+                    }
+                ]
+            ),
+            _assistant(
+                content="University of Ghana offers Bachelor of Medicine and Bachelor of Surgery."
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-claims-2", "medicine at UG", chat_fn=fake)
+
+    assert "University of Ghana" not in result["unverified_institution_claims"]
+
+
 def test_analyze_outcomes_unknown_category_error_fed_back_not_raised():
     fake = FakeChat(
         [

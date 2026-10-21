@@ -572,6 +572,99 @@ function renderInstitutionsLookupCard(lookup) {
   log.scrollTop = log.scrollHeight;
 }
 
+function renderUnverifiedClaimsWarning(institutions) {
+  // Prominent, distinct styling from the other (reassuring) cards on
+  // purpose - this is a warning, not an info card. See
+  // docs/evaluation.md Failure 14.
+  const list = institutions.map((name) => `<li>${escapeHtml(name)}</li>`).join("");
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.style.border = "1px solid #c0392b";
+  card.style.background = "rgba(192,57,18,0.08)";
+  card.innerHTML = `
+    <h3 style="color:#c0392b;">⚠ Unverified claim in the reply above</h3>
+    <div style="font-size:12px;">
+      The reply names specific programmes at the following institution(s),
+      but no verified programme data was actually checked for them this
+      turn - treat any programme names mentioned for these as unconfirmed:
+    </div>
+    <ul style="margin:4px 0 0 18px;font-size:12px;">${list}</ul>
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+      Check the institution's own admissions office before relying on any
+      programme name mentioned above for it.
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
+function renderInstitutionProgrammesCard(lookup) {
+  // Deterministic rendering of lookup_institution_programmes - independent
+  // of whatever the model's own reply text named. Added after a live run
+  // showed the chat model inventing institution-specific programme titles
+  // ("Bachelor of Medicine and Surgery at UDS") with no real data behind
+  // them (see docs/evaluation.md Failure 13). Same reasoning as the
+  // calculation (Failure 3), cohort stats (Failure 9), and institutions
+  // (Failure 12) cards: render the real tool output, not the retelling.
+  if (!lookup.has_data_for_institution) {
+    const card = document.createElement("div");
+    card.className = "recommendation-card";
+    card.innerHTML = `
+      <h3>Programmes at ${escapeHtml(lookup.institution)}</h3>
+      <div style="font-size:12px;color:var(--muted);">
+        No per-programme data on file for this institution yet - only
+        University of Ghana and KNUST have real, sourced programme/cutoff
+        data so far. Check this institution's own admissions office.
+      </div>
+    `;
+    log.appendChild(card);
+    log.scrollTop = log.scrollHeight;
+    return;
+  }
+
+  const rows = lookup.matches
+    .map(
+      (m) => `
+      <tr>
+        <td style="padding:2px 8px 2px 0;">${escapeHtml(m.programme)}</td>
+        <td style="padding:2px 8px;white-space:nowrap;">${escapeHtml(m.cutoff_display || "-")}</td>
+        <td style="padding:2px 0;color:var(--muted);">${escapeHtml(m.level || "")}</td>
+      </tr>`
+    )
+    .join("");
+
+  const moreNote =
+    lookup.total_available_for_institution > lookup.matches.length
+      ? `<div style="margin-top:4px;font-size:11px;color:var(--muted);">
+           Showing ${lookup.matches.length} of ${lookup.total_available_for_institution} matching programmes.
+         </div>`
+      : "";
+
+  const confidenceNote = lookup.matches[0]
+    ? `Confidence: ${escapeHtml(lookup.matches[0].confidence)}`
+    : "";
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.innerHTML = `
+    <h3>Programmes at ${escapeHtml(lookup.institution)}${lookup.keyword ? ` matching "${escapeHtml(lookup.keyword)}"` : ""}</h3>
+    <table style="font-size:12px;border-collapse:collapse;">
+      <thead><tr style="text-align:left;color:var(--muted);">
+        <th style="padding:2px 8px 2px 0;">Programme</th>
+        <th style="padding:2px 8px;">Cut-off</th>
+        <th style="padding:2px 0;">Level</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${moreNote}
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+      ${confidenceNote} &middot; illustrative, not a guarantee of admission - check the institution's own admissions office for the current cycle.
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
 document.getElementById("calcSubmit").addEventListener("click", async () => {
   const chosenSubjects = [];
   const electives = {};
@@ -745,6 +838,8 @@ form.addEventListener("submit", async (e) => {
     let calculation = null;
     let cohortStats = null;
     let institutionsLookup = null;
+    let institutionProgrammes = null;
+    let unverifiedInstitutionClaims = [];
 
     while (true) {
       const { done, value } = await reader.read();
@@ -777,10 +872,21 @@ form.addEventListener("submit", async (e) => {
           calculation = event.calculation;
           cohortStats = event.cohort_stats;
           institutionsLookup = event.institutions_lookup;
+          institutionProgrammes = event.institution_programmes;
+          unverifiedInstitutionClaims = event.unverified_institution_claims || [];
         }
       }
     }
 
+    if (unverifiedInstitutionClaims.length > 0) {
+      // Deterministic safety net for Failure 14 (docs/evaluation.md): a
+      // live run showed the model naming specific programmes at
+      // institutions it never actually checked, across an entire
+      // structured answer - not just embellishing one correct result.
+      // This renders regardless of what the model's own reply text says,
+      // first, so the student sees it before the other (reassuring) cards.
+      renderUnverifiedClaimsWarning(unverifiedInstitutionClaims);
+    }
     if (recommendation) {
       addRecommendationCard(recommendation);
     }
@@ -798,6 +904,9 @@ form.addEventListener("submit", async (e) => {
     }
     if (institutionsLookup) {
       renderInstitutionsLookupCard(institutionsLookup);
+    }
+    if (institutionProgrammes) {
+      renderInstitutionProgrammesCard(institutionProgrammes);
     }
   } catch (err) {
     liveBubble.remove();
