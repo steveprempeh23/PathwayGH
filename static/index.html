@@ -572,6 +572,38 @@ function renderInstitutionsLookupCard(lookup) {
   log.scrollTop = log.scrollHeight;
 }
 
+function renderEligibilityContradictionWarning(contradictions) {
+  // Prominent correction, distinct even from the unverified-claims
+  // warning below - this isn't "we couldn't confirm it", it's "the real
+  // calculation says the opposite of what was just stated". See
+  // docs/evaluation.md Failure 15.
+  const rows = contradictions
+    .map(
+      (c) => `
+      <li>
+        <strong>${escapeHtml(c.category)}</strong>: the reply said
+        "${escapeHtml(c.model_said)}", but your actual saved result says
+        "${escapeHtml(c.actual)}".
+      </li>`
+    )
+    .join("");
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.style.border = "2px solid #c0392b";
+  card.style.background = "rgba(192,57,18,0.12)";
+  card.innerHTML = `
+    <h3 style="color:#c0392b;">⚠ Correction: the reply above contradicts your real result</h3>
+    <ul style="margin:4px 0 0 18px;font-size:12px;">${rows}</ul>
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+      Trust the calculation result from "Enter My Grades" over the text
+      above for these categories.
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
 function renderUnverifiedClaimsWarning(institutions) {
   // Prominent, distinct styling from the other (reassuring) cards on
   // purpose - this is a warning, not an info card. See
@@ -840,6 +872,7 @@ form.addEventListener("submit", async (e) => {
     let institutionsLookup = null;
     let institutionProgrammes = null;
     let unverifiedInstitutionClaims = [];
+    let eligibilityContradictions = [];
 
     while (true) {
       const { done, value } = await reader.read();
@@ -874,10 +907,21 @@ form.addEventListener("submit", async (e) => {
           institutionsLookup = event.institutions_lookup;
           institutionProgrammes = event.institution_programmes;
           unverifiedInstitutionClaims = event.unverified_institution_claims || [];
+          eligibilityContradictions = event.eligibility_contradictions || [];
         }
       }
     }
 
+    if (eligibilityContradictions.length > 0) {
+      // Deterministic safety net for Failure 15 (docs/evaluation.md): a
+      // live run showed the model directly contradicting an
+      // already-computed eligibility result ("you ARE eligible" for a
+      // category the real calculation had marked ineligible). Unlike the
+      // unverified-claims warning below, this has absolute ground truth
+      // to compare against, so it is shown first and worded as a
+      // correction, not a caution.
+      renderEligibilityContradictionWarning(eligibilityContradictions);
+    }
     if (unverifiedInstitutionClaims.length > 0) {
       // Deterministic safety net for Failure 14 (docs/evaluation.md): a
       // live run showed the model naming specific programmes at

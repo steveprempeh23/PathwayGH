@@ -747,6 +747,82 @@ would likely need this safety net far less; it stays either way, because
 "the model should behave better" is not a load-bearing assumption this
 codebase makes anywhere else, and it shouldn't start here.
 
+### Failure 15: model directly contradicts an already-computed eligibility result (observed live, Oct 2026)
+
+**What happened:** a student with aggregate 6 and purely technical/
+vocational electives (Technical Drawing, Applied Electricity,
+Electronics) ran "Enter My Grades". The real, deterministic result
+correctly marked "Engineering / Pharmacy / Actuarial Science" as **Not
+eligible** (electives don't match - no Biology/Chemistry/Physics). Two
+turns later, asked "where can i get civil engineering or architecture",
+the model answered: "Based on the tool's output, you are eligible for the
+category 'Engineering / Pharmacy / Actuarial Science'" - the exact
+opposite of the real result, sitting in the same conversation.
+
+**Why this is different in kind from Failures 12/13/14:** those were all
+about the model inventing something with NO real data behind it
+(institutions, programmes). This is the model having the correct answer
+available - literally printed in the conversation two turns earlier - and
+stating the opposite of it anyway. It is also the first of these failures
+where chat genuinely had no deterministic tool it could have called: chat
+has no access to compute_aggregate/check_eligibility at all (Failure 6),
+so its only way to answer a follow-up eligibility question was ever going
+to be rereading its own earlier text, and this is what happens when that
+reread goes wrong.
+
+**Fix - this one needed real session state, not just a better tool:**
+1. `app/core/session_store.py` gained a second table, `calculations`,
+   storing the REAL structured `AggregateResult`/`EligibilityResult` from
+   a session's most recent `/calculate` call (`set_last_calculation`/
+   `get_last_calculation`) - previously only the human-readable text
+   summary was ever persisted (Failure 8's fix), which is exactly what
+   the model was misreading.
+2. `/calculate` (`app/api/routes.py`) now writes to this table alongside
+   the existing text-summary history write.
+3. New tool `get_saved_eligibility` (`app/tools/eligibility_status_lookup.py`,
+   `app/models/eligibility_status.py`) lets the model check the REAL
+   verdict for one category instead of recalling the table. Added to
+   `ALL_TOOLS`; `system_prompt.py` rule 5c rewritten to require calling it
+   before stating any eligibility verdict (it previously told the model
+   it was fine to read eligibility off the earlier table from memory -
+   that instruction was itself part of the bug).
+4. **The part that holds regardless of whether the model calls the new
+   tool - and the first guard in this project with absolute ground truth
+   to compare against, not just "was something verified":**
+   `app/tools/eligibility_claim_guard.py`'s `detect_eligibility_contradictions`
+   scans the model's final reply text for any category name paired with
+   eligibility language ("eligible" / "not eligible" / "no match"), and
+   compares the claimed verdict against the real saved result for this
+   session. A mismatch is a *definite* wrong answer, not merely
+   unverified - Failure 14's guard could only ever say "we don't know if
+   this is right" because there's no absolute ground truth for arbitrary
+   institution/programme pairs; here there is. Threaded through
+   `orchestrator.py`, surfaced as `eligibility_contradictions` on
+   `handle_turn`/`handle_turn_stream`, added to `ChatResponse`, rendered
+   in `static/index.html` as the most prominent warning in the UI -
+   worded as a correction ("the reply said X, your actual result says
+   Y"), shown before even the Failure-14 warning.
+
+Verified with
+`test_eligibility_contradiction_flagged_when_model_contradicts_real_result`
+(reproduces the live failure verbatim and confirms the exact
+category/model_said/actual values are captured),
+`test_eligibility_contradiction_empty_when_model_states_the_truth`,
+`test_eligibility_contradiction_empty_when_no_calculation_saved_yet`,
+`test_get_saved_eligibility_tool_wired_through_orchestrator`, and
+`test_get_saved_eligibility_no_calculation_yet_returns_error_not_exception`
+in `tests/test_orchestrator.py`, plus
+`test_calculate_with_session_id_persists_structured_result_for_failure_15`
+in `tests/test_api.py` confirming the new table is actually written.
+
+**What this doesn't fix:** same honest limit as Failure 14 - the
+contradictory sentence still sits in the reply exactly as the model wrote
+it; nothing rewrites it. What's different here is the response is no
+longer just flagged "unverified" but corrected with the actual right
+answer shown alongside it, because for this specific failure mode (unlike
+institution/programme invention) the real answer was always one
+`session_store` lookup away.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

@@ -34,6 +34,8 @@ from app.rag import retriever as rag_retriever
 from app.tools.aggregate_calculator import compute_aggregate
 from app.tools.data_analysis import analyze_outcomes
 from app.tools.eligibility_checker import check_eligibility
+from app.tools.eligibility_claim_guard import detect_eligibility_contradictions
+from app.tools.eligibility_status_lookup import get_saved_eligibility
 from app.tools.institution_claim_guard import detect_unverified_institution_claims
 from app.tools.institution_programme_lookup import lookup_institution_programmes
 from app.tools.programme_lookup import lookup_institutions
@@ -61,12 +63,13 @@ PROGRESS_LABELS = {
     "retrieve_context": "Searching the admission guide...",
     "analyze_outcomes": "Crunching cohort statistics...",
     "list_institutions": "Looking up real institutions for this category...",
+    "get_saved_eligibility": "Checking your saved eligibility result...",
     "lookup_institution_programmes": "Looking up real programmes for this institution...",
     "submit_recommendation": "Preparing your recommendation...",
 }
 
 
-def _execute_tool(name: str, arguments: dict):
+def _execute_tool(name: str, arguments: dict, session_id: str):
     """Runs one tool call. Returns (result_content_for_model, recommendation, extra).
 
     `extra` is a dict carrying the REAL typed result object for
@@ -145,6 +148,13 @@ def _execute_tool(name: str, arguments: dict):
         except ValueError as exc:
             return json.dumps({"error": str(exc)}), None, None
 
+    if name == "get_saved_eligibility":
+        try:
+            result = get_saved_eligibility(session_id, arguments.get("programme_category"))
+            return result.model_dump_json(), None, {"saved_eligibility": result}
+        except ValueError as exc:
+            return json.dumps({"error": str(exc)}), None, None
+
     if name == "lookup_institution_programmes":
         result = lookup_institution_programmes(
             institution=arguments.get("institution"),
@@ -162,7 +172,7 @@ def _execute_tool(name: str, arguments: dict):
     return json.dumps({"error": f"unknown tool '{name}'"}), None, None
 
 
-def _resolve_tools(messages: list[dict], chat_fn):
+def _resolve_tools(messages: list[dict], chat_fn, session_id: str):
     """Shared tool-calling loop, used by both handle_turn and
     handle_turn_stream. A generator: yields {"type": "progress", ...} events
     as each tool executes, and on completion returns (via StopIteration.value)
@@ -219,7 +229,7 @@ def _resolve_tools(messages: list[dict], chat_fn):
             }
 
             result_content, maybe_recommendation, extra = _execute_tool(
-                call["name"], call["arguments"]
+                call["name"], call["arguments"], session_id
             )
 
             if extra:
@@ -387,7 +397,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
         final_response, recommendation, early_result,
         aggregate_result, eligibility_result, cohort_stats_result, institutions_lookup_result,
         institution_programmes_result, verified_institutions,
-    ) = _drain(_resolve_tools(messages, chat_fn))
+    ) = _drain(_resolve_tools(messages, chat_fn, session_id))
     calculation = _build_calculation(aggregate_result, eligibility_result)
     cohort_stats = _build_cohort_stats(cohort_stats_result)
     institutions_lookup = _build_institutions_lookup(institutions_lookup_result)
@@ -402,6 +412,9 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
         early_result["institution_programmes"] = institution_programmes
         early_result["unverified_institution_claims"] = detect_unverified_institution_claims(
             early_result["reply"], verified_institutions
+        )
+        early_result["eligibility_contradictions"] = detect_eligibility_contradictions(
+            early_result["reply"], session_id
         )
         return early_result
 
@@ -418,6 +431,12 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
     unverified_institution_claims = detect_unverified_institution_claims(
         final_text, verified_institutions
     )
+    # Deterministic safety net for Failure 15 (docs/evaluation.md): the
+    # model has been observed directly contradicting an already-computed
+    # eligibility result. Unlike the check above, this has absolute ground
+    # truth (the real saved calculation for this session) to compare
+    # against, so it can flag a definite WRONG, not just "unverified".
+    eligibility_contradictions = detect_eligibility_contradictions(final_text, session_id)
 
     session_store.append_message(session_id, "user", user_message)
     session_store.append_message(session_id, "assistant", final_text)
@@ -428,6 +447,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
         "institutions_lookup": institutions_lookup,
         "institution_programmes": institution_programmes,
         "unverified_institution_claims": unverified_institution_claims,
+        "eligibility_contradictions": eligibility_contradictions,
         "recommendation": recommendation.model_dump() if recommendation else None,
         "calculation": calculation,
     }
@@ -466,7 +486,7 @@ def handle_turn_stream(
         {"role": "user", "content": user_message}
     ]
 
-    gen = _resolve_tools(messages, chat_fn)
+    gen = _resolve_tools(messages, chat_fn, session_id)
     try:
         while True:
             yield next(gen)
@@ -494,6 +514,9 @@ def handle_turn_stream(
             "unverified_institution_claims": detect_unverified_institution_claims(
                 early_result["reply"], verified_institutions
             ),
+            "eligibility_contradictions": detect_eligibility_contradictions(
+                early_result["reply"], session_id
+            ),
         }
         return
 
@@ -518,6 +541,8 @@ def handle_turn_stream(
     unverified_institution_claims = detect_unverified_institution_claims(
         final_text, verified_institutions
     )
+    # Same Failure-15 safety net as handle_turn - see the comment there.
+    eligibility_contradictions = detect_eligibility_contradictions(final_text, session_id)
 
     session_store.append_message(session_id, "user", user_message)
     session_store.append_message(session_id, "assistant", final_text)
@@ -530,4 +555,5 @@ def handle_turn_stream(
         "institutions_lookup": institutions_lookup,
         "institution_programmes": institution_programmes,
         "unverified_institution_claims": unverified_institution_claims,
+        "eligibility_contradictions": eligibility_contradictions,
     }

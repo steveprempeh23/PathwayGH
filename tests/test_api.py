@@ -241,6 +241,37 @@ def test_calculate_with_session_id_records_history_for_followup_chat():
     assert "Medicine / Dentistry" in assistant_summary
 
 
+def test_calculate_with_session_id_persists_structured_result_for_failure_15():
+    """Regression test for Failure 15: /calculate must also persist the
+    REAL, structured result via session_store.set_last_calculation, not
+    just the human-readable text summary - this is what
+    get_saved_eligibility and the eligibility-contradiction guard check
+    against, independent of whether the model's own text correctly
+    recalls the summary.
+    """
+    session_id = "calc-structured-test"
+    response = client.post(
+        "/calculate",
+        json={
+            "session_id": session_id,
+            "grades": {
+                "english": "A1",
+                "core_mathematics": "A1",
+                "third_core": "A1",
+                "electives": {"Biology": "A1", "Chemistry": "B2", "Physics": "B2"},
+                "track": "science",
+            },
+        },
+    )
+    assert response.status_code == 200
+
+    saved = session_store.get_last_calculation(session_id)
+    assert saved is not None
+    assert saved["aggregate"]["aggregate"] == 8
+    medicine = next(m for m in saved["eligibility"]["matches"] if m["category"] == "Medicine / Dentistry")
+    assert medicine["overall_eligible"] is True
+
+
 def test_calculate_without_session_id_does_not_touch_history():
     """session_id is optional - standalone API use (no chat session) must
     not silently create history entries anywhere."""

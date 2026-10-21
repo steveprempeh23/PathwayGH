@@ -431,6 +431,127 @@ def test_unverified_institution_claims_empty_when_tool_actually_verified_it():
     assert "University of Ghana" not in result["unverified_institution_claims"]
 
 
+def test_eligibility_contradiction_flagged_when_model_contradicts_real_result():
+    """Regression test for Failure 15 (docs/evaluation.md): a live model,
+    asked a follow-up question, told a student they WERE eligible for
+    "Engineering / Pharmacy / Actuarial Science" when the real, saved
+    calculation had marked it "Not eligible" - without calling
+    get_saved_eligibility to check. The fix is a deterministic guard that
+    compares the reply text against the real saved result, independent of
+    whether the model called any tool.
+    """
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="technical",
+        electives={"Technical Drawing": "A1", "Applied Electricity": "A1", "Electronics": "A1"},
+    )
+    session_store.set_last_calculation("session-contra", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            # The model answers straight from (mis)memory, calling no tool.
+            _assistant(
+                content=(
+                    "Based on the tool's output, you are eligible for the "
+                    "category 'Engineering / Pharmacy / Actuarial Science'."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn(
+        "session-contra", "where can i get civil engineering", chat_fn=fake
+    )
+
+    contradictions = result["eligibility_contradictions"]
+    assert len(contradictions) == 1
+    assert contradictions[0]["category"] == "Engineering / Pharmacy / Actuarial Science"
+    assert contradictions[0]["model_said"] == "eligible"
+    assert contradictions[0]["actual"] == "not eligible"
+
+
+def test_eligibility_contradiction_empty_when_model_states_the_truth():
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="technical",
+        electives={"Technical Drawing": "A1", "Applied Electricity": "A1", "Electronics": "A1"},
+    )
+    session_store.set_last_calculation("session-contra-2", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You are not eligible for Engineering / Pharmacy / "
+                    "Actuarial Science because your electives don't match."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-contra-2", "civil engineering?", chat_fn=fake)
+    assert result["eligibility_contradictions"] == []
+
+
+def test_eligibility_contradiction_empty_when_no_calculation_saved_yet():
+    """No saved calculation at all for this session - nothing to compare
+    against, so no contradiction can be (or should be) claimed."""
+    fake = FakeChat([_assistant(content="You are eligible for Medicine / Dentistry.")])
+    result = orchestrator.handle_turn("session-no-calc", "medicine?", chat_fn=fake)
+    assert result["eligibility_contradictions"] == []
+
+
+def test_get_saved_eligibility_tool_wired_through_orchestrator():
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="technical",
+        electives={"Technical Drawing": "A1", "Applied Electricity": "A1", "Electronics": "A1"},
+    )
+    session_store.set_last_calculation("session-tool", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {
+                        "name": "get_saved_eligibility",
+                        "arguments": {"programme_category": "Engineering / Pharmacy / Actuarial Science"},
+                    }
+                ]
+            ),
+            _assistant(content="Checked - you are not eligible for that category."),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-tool", "am I eligible for engineering", chat_fn=fake)
+    assert "not eligible" in result["reply"]
+    assert result["eligibility_contradictions"] == []
+
+
+def test_get_saved_eligibility_no_calculation_yet_returns_error_not_exception():
+    fake = FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {
+                        "name": "get_saved_eligibility",
+                        "arguments": {"programme_category": "Medicine / Dentistry"},
+                    }
+                ]
+            ),
+            _assistant(content="Please use the Enter My Grades button first."),
+        ]
+    )
+    result = orchestrator.handle_turn("session-empty", "am I eligible for medicine", chat_fn=fake)
+    assert "Enter My Grades" in result["reply"]
+
+
 def test_analyze_outcomes_unknown_category_error_fed_back_not_raised():
     fake = FakeChat(
         [

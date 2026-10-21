@@ -65,6 +65,17 @@ class ChatResponse(BaseModel):
     ran - see docs/evaluation.md Failure 13 (model invented institution-
     specific programme titles with no real data behind them). Same
     reasoning as the fields above."""
+    eligibility_contradictions: list[dict] = []
+    """Deterministic, code-level flag for Failure 15 (docs/evaluation.md):
+    categories named in `reply` alongside an eligibility verdict ("eligible"
+    / "not eligible") that CONTRADICTS the real, saved result for this
+    session's most recent "Enter My Grades" submission. Unlike
+    unverified_institution_claims below, this has absolute ground truth
+    (session_store.get_last_calculation) to compare against, so a non-empty
+    list here means the reply is definitely wrong for that category, not
+    merely unverified - a live run showed the model telling a student they
+    WERE eligible for a category the real calculation had marked
+    ineligible."""
     unverified_institution_claims: list[str] = []
     """Deterministic, code-level flag for Failure 14 (docs/evaluation.md):
     institutions named in `reply` alongside degree-sounding language that

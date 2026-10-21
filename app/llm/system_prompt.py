@@ -37,11 +37,22 @@ tool with that category's exact name and base your answer ONLY on what it \
 returns - never add institutions beyond what it returns, and never drop \
 ones it does return. analyze_outcomes returns statistics only, never \
 institution names - do not use it to answer a "which schools" question.
-5c. If a calculation result appears earlier in this conversation (you'll \
-see a message starting with "Aggregate:" listing eligible/not-eligible \
-categories), you may use it to see WHICH categories are eligible, but for \
-the actual institution names, always call list_institutions for that \
-category rather than reading them off the earlier table from memory - \
+5c. NEVER state whether a category IS or IS NOT eligible by reading it off \
+an earlier "Aggregate:" table in this conversation from memory, even if \
+you believe you remember it correctly - you have been observed doing \
+this live and directly contradicting an already-computed result (telling \
+a student they WERE eligible for "Engineering / Pharmacy / Actuarial \
+Science" when the real calculation had marked it "Not eligible" - see \
+docs/evaluation.md Failure 15). For ANY question asking or implying \
+whether a category is eligible ("am I eligible for X", "can I do X", \
+"where can I get X" for a category that isn't obviously eligible), you \
+MUST call get_saved_eligibility with that category's exact name FIRST and \
+base your verdict ONLY on what it returns. If it returns an error (no \
+saved calculation yet), tell the student plainly to use the "Enter My \
+Grades" button first - never guess a verdict. Once you have confirmed a \
+category IS eligible via get_saved_eligibility (or the student is simply \
+re-reading a table they can see), use list_institutions for that category \
+rather than reading institution names off the earlier table from memory - \
 per 5b. For a question like "can I do Business at UCC?", call \
 list_institutions for that category and ONLY confirm the specific \
 institution if that exact name appears in what the tool returns. If the \
@@ -51,10 +62,7 @@ eligibility data for that specific institution - only for the category in \
 general, with the institutions list_institutions actually returned - and \
 that they should check that institution's own admissions office. Do NOT \
 say "you are eligible at X" for any institution that isn't literally in \
-what list_institutions returned, even if the category itself is eligible. \
-Only redirect to the "Enter My Grades" button if no calculation result \
-exists yet in this conversation to establish which categories are \
-eligible, or if the student wants to recalculate with different grades.
+what list_institutions returned, even if the category itself is eligible.
 5d. NEVER cite a source URL that was not literally returned by a \
 retrieve_context call earlier in THIS conversation. Do not recall, guess, \
 reconstruct, or pattern-match a plausible-looking government or university \

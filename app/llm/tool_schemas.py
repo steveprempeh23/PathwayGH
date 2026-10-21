@@ -128,6 +128,38 @@ LIST_INSTITUTIONS_TOOL = {
     },
 }
 
+GET_SAVED_ELIGIBILITY_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "get_saved_eligibility",
+        "description": (
+            "Get the REAL, already-computed eligibility verdict (eligible or "
+            "not) for one category, from this student's most recent 'Enter My "
+            "Grades' submission this session. ALWAYS call this before telling "
+            "a student whether they ARE or ARE NOT eligible for a specific "
+            "category on a follow-up question - even if you believe you "
+            "remember the verdict correctly from an earlier 'Aggregate:' "
+            "table in this conversation. You have been observed, live, "
+            "directly contradicting an already-computed result (telling a "
+            "student they WERE eligible for a category the real calculation "
+            "had marked 'Not eligible') - see docs/evaluation.md Failure 15. "
+            "If no calculation has been saved yet, this returns an error - "
+            "tell the student to use the 'Enter My Grades' button first, "
+            "never guess."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "programme_category": {
+                    "type": "string",
+                    "description": "Exact category name, e.g. 'Engineering / Pharmacy / Actuarial Science'",
+                },
+            },
+            "required": ["programme_category"],
+        },
+    },
+}
+
 LOOKUP_INSTITUTION_PROGRAMMES_TOOL = {
     "type": "function",
     "function": {
@@ -197,6 +229,7 @@ ALL_TOOLS = [
     RETRIEVE_CONTEXT_TOOL,
     ANALYZE_OUTCOMES_TOOL,
     LIST_INSTITUTIONS_TOOL,
+    GET_SAVED_ELIGIBILITY_TOOL,
     LOOKUP_INSTITUTION_PROGRAMMES_TOOL,
     SUBMIT_RECOMMENDATION_TOOL,
 ]

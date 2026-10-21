@@ -64,6 +64,7 @@ def check_tool_schemas_match_models():
         "retrieve_context",
         "analyze_outcomes",
         "list_institutions",
+        "get_saved_eligibility",
         "lookup_institution_programmes",
         "submit_recommendation",
     }, f"unexpected tool set: {names}"

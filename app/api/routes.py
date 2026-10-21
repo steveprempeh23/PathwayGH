@@ -109,6 +109,16 @@ def calculate(request: CalculateRequest) -> dict:
     without this, a student could get a correct result here and then have
     the chat claim total ignorance of it moments later, because the two
     paths never shared any state at all.
+
+    The REAL structured result is also persisted separately via
+    session_store.set_last_calculation - see docs/evaluation.md Failure 15:
+    a live model, asked a follow-up question, misread its own earlier text
+    summary and told a student they WERE eligible for a category the real
+    calculation had marked ineligible. The text summary alone is something
+    a model can misread; this structured copy is what
+    get_saved_eligibility and the eligibility-contradiction guard check
+    against instead, so a wrong verdict in the model's prose can be
+    detected regardless of why it went wrong.
     """
     grade_input = request.grades
     try:
@@ -128,6 +138,11 @@ def calculate(request: CalculateRequest) -> dict:
             request.session_id, "user", "[Submitted grades via the Enter My Grades form]"
         )
         session_store.append_message(request.session_id, "assistant", summary)
+        session_store.set_last_calculation(
+            request.session_id,
+            aggregate_result.model_dump(),
+            eligibility_result.model_dump(),
+        )
 
     return {
         "aggregate": aggregate_result.model_dump(),
