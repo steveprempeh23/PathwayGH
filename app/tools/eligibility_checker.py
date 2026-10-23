@@ -29,6 +29,13 @@ _DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "structured" / "prog
 
 _GENERIC_MARKERS = ("any approved", "varies by programme", "department-specific")
 
+# required_core entries this specific enough to check against a named
+# subject the student actually has a grade for. Anything else (e.g.
+# "Integrated Science or Social Studies (track-dependent)") is left
+# unverifiable - see docs/evaluation.md Failure 16.
+_CHECKABLE_CORE_SUBJECTS = ("Integrated Science", "Social Studies")
+_CORE_CREDIT_MIN_GRADE = "C6"
+
 
 def _load_programmes() -> list[dict]:
     with open(_DATA_PATH, encoding="utf-8") as f:
@@ -92,9 +99,44 @@ def _check_electives(
     return None
 
 
+def _check_required_core(
+    required_core: list[str], core_grades: Optional[Dict[str, str]]
+) -> Optional[bool]:
+    """Returns False if required_core names a specific subject (Integrated
+    Science or Social Studies) that the student's core_grades don't meet
+    at a credit pass (C6+), True if every specifically-named subject does,
+    None if required_core names nothing checkable or core_grades wasn't
+    supplied at all - never silently coerced to True or False either way.
+    English Language and Core Mathematics are not re-checked here since
+    compute_aggregate's credit_gate_passed already covers them; this
+    exists specifically for the Integrated-Science-vs-Social-Studies
+    nuance that credit_gate_passed does NOT cover on its own (see
+    docs/evaluation.md Failure 16).
+    """
+    named = [s for s in required_core if s in _CHECKABLE_CORE_SUBJECTS]
+    if not named or core_grades is None:
+        return None
+
+    for subject in named:
+        grade = core_grades.get(subject)
+        if grade is None or not meets_min_grade(grade, _CORE_CREDIT_MIN_GRADE):
+            return False
+    return True
+
+
 def check_eligibility(
-    aggregate: int, track: str, electives: Dict[str, str]
+    aggregate: int,
+    track: str,
+    electives: Dict[str, str],
+    core_grades: Optional[Dict[str, str]] = None,
 ) -> EligibilityResult:
+    """core_grades, when supplied, should be {"Integrated Science": grade,
+    "Social Studies": grade} - the student's ACTUAL grades in both, not
+    just whichever was used for their overall aggregate (see
+    AggregateResult.third_core_used). Optional and defaults to None for
+    backward compatibility; without it, required_core_match is always None
+    (unverifiable) rather than guessed. See docs/evaluation.md Failure 16.
+    """
     matches: list[ProgrammeMatch] = []
 
     for prog in _PROGRAMMES:
@@ -113,8 +155,11 @@ def check_eligibility(
         electives_match = _check_electives(
             prog["required_electives"], electives, prog["elective_min_grade"]
         )
+        required_core_match = _check_required_core(
+            prog.get("required_core", []), core_grades
+        )
 
-        if electives_match is False:
+        if electives_match is False or required_core_match is False:
             overall_eligible = False
         else:
             overall_eligible = aggregate_eligible
@@ -129,10 +174,21 @@ def check_eligibility(
         else:
             elective_note = "elective subjects/grades do NOT satisfy this category's requirement"
 
+        if required_core_match is False:
+            core_note = (
+                " This category specifically requires "
+                f"{' and '.join(s for s in prog.get('required_core', []) if s in _CHECKABLE_CORE_SUBJECTS)} "
+                "at credit level, which the student's grade does not meet, "
+                "regardless of which subject was used in their overall aggregate."
+            )
+        else:
+            core_note = ""
+
         reason = (
             f"Aggregate {aggregate} {'meets' if aggregate_eligible else 'does not meet'} "
             f"the {prog['confidence']} band ({band['best']}-{band['worst']}) for "
-            f"{prog['category']} (aggregate must be {band['worst']} or better); {elective_note}."
+            f"{prog['category']} (aggregate must be {band['worst']} or better); "
+            f"{elective_note}.{core_note}"
         )
 
         matches.append(
@@ -140,6 +196,7 @@ def check_eligibility(
                 category=prog["category"],
                 aggregate_eligible=aggregate_eligible,
                 electives_match=electives_match,
+                required_core_match=required_core_match,
                 overall_eligible=overall_eligible,
                 reason=reason,
                 confidence=prog["confidence"],

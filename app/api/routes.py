@@ -130,6 +130,16 @@ def calculate(request: CalculateRequest) -> dict:
         aggregate=aggregate_result.aggregate,
         track=grade_input.track.value,
         electives=grade_input.electives,
+        # The student's ACTUAL grades in both Integrated Science and
+        # Social Studies - not just whichever compute_aggregate used for
+        # their overall number - so categories requiring one specifically
+        # (e.g. Medicine needs Integrated Science even if Social Studies
+        # was better overall) are checked correctly. See docs/evaluation.md
+        # Failure 16.
+        core_grades={
+            "Integrated Science": grade_input.integrated_science,
+            "Social Studies": grade_input.social_studies,
+        },
     )
 
     if request.session_id:

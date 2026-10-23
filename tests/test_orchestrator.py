@@ -43,7 +43,7 @@ def test_full_happy_path_with_both_tools_and_recommendation():
                         "arguments": {
                             "english": "B3",
                             "core_mathematics": "B2",
-                            "third_core": "C4",
+                            "integrated_science": "C4", "social_studies": "C4",
                             "electives": {"Biology": "B2", "Chemistry": "B3", "Physics": "C4"},
                             "track": "science",
                         },
@@ -589,7 +589,7 @@ def test_stream_emits_progress_then_tokens_then_done():
                         "arguments": {
                             "english": "B3",
                             "core_mathematics": "B2",
-                            "third_core": "C4",
+                            "integrated_science": "C4", "social_studies": "C4",
                             "electives": {"Biology": "B2", "Chemistry": "B3", "Physics": "C4"},
                             "track": "science",
                         },
@@ -691,7 +691,7 @@ def test_calculation_surfaces_real_data_even_when_model_narration_is_wrong():
                     {
                         "name": "compute_aggregate",
                         "arguments": {
-                            "english": "B2", "core_mathematics": "B2", "third_core": "B2",
+                            "english": "B2", "core_mathematics": "B2", "integrated_science": "B2", "social_studies": "B2",
                             "electives": {"Biology": "B2", "Chemistry": "B2", "Physics": "B2"},
                             "track": "science",
                         },
@@ -740,7 +740,7 @@ def test_stream_calculation_in_done_event_matches_real_data():
                     {
                         "name": "compute_aggregate",
                         "arguments": {
-                            "english": "A1", "core_mathematics": "A1", "third_core": "A1",
+                            "english": "A1", "core_mathematics": "A1", "integrated_science": "A1", "social_studies": "A1",
                             "electives": {"Biology": "A1", "Chemistry": "B2", "Physics": "B2"},
                             "track": "science",
                         },

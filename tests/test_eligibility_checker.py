@@ -1,6 +1,87 @@
 from app.tools.eligibility_checker import check_eligibility
 
 
+def test_required_core_rejects_medicine_when_integrated_science_fails_even_if_aggregate_and_electives_pass():
+    """Regression test for Failure 16 (docs/evaluation.md): Medicine
+    requires Integrated Science specifically at credit level - this must
+    be checked against the student's ACTUAL Integrated Science grade,
+    independent of which core subject was better for their overall
+    aggregate. Here the student's electives and aggregate both pass, but
+    their real Integrated Science grade (F9) is a outright fail - they
+    must NOT be marked eligible for Medicine regardless.
+    """
+    result = check_eligibility(
+        aggregate=8,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B3", "Physics": "A1"},
+        core_grades={"Integrated Science": "F9", "Social Studies": "A1"},
+    )
+    medicine = next(m for m in result.matches if "Medicine" in m.category)
+    assert medicine.aggregate_eligible is True
+    assert medicine.electives_match is True
+    assert medicine.required_core_match is False
+    assert medicine.overall_eligible is False
+
+
+def test_required_core_accepts_medicine_when_integrated_science_is_a_credit_pass():
+    result = check_eligibility(
+        aggregate=8,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B3", "Physics": "A1"},
+        core_grades={"Integrated Science": "C6", "Social Studies": "F9"},
+    )
+    medicine = next(m for m in result.matches if "Medicine" in m.category)
+    assert medicine.required_core_match is True
+    assert medicine.overall_eligible is True
+
+
+def test_required_core_is_none_without_core_grades_supplied():
+    """Backward compatible: omitting core_grades entirely (as every
+    pre-Failure-16 caller does) must leave required_core_match
+    unverifiable, never silently True or False."""
+    result = check_eligibility(
+        aggregate=8,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B3", "Physics": "A1"},
+    )
+    medicine = next(m for m in result.matches if "Medicine" in m.category)
+    assert medicine.required_core_match is None
+    assert medicine.overall_eligible is True
+
+
+def test_required_core_checks_social_studies_specifically_for_business():
+    """Business/Finance/Accounting requires Social Studies specifically -
+    the mirror image of the Medicine case above. A student whose overall
+    aggregate used Integrated Science (because it was better) must still
+    be checked against their actual Social Studies grade for this
+    category.
+    """
+    result = check_eligibility(
+        aggregate=10,
+        track="business",
+        electives={"Economics": "B2", "Accounting": "B2", "Costing": "B2"},
+        core_grades={"Integrated Science": "A1", "Social Studies": "F9"},
+    )
+    business = next(m for m in result.matches if "Business" in m.category)
+    assert business.required_core_match is False
+    assert business.overall_eligible is False
+
+
+def test_required_core_is_none_for_generic_floor_categories():
+    """Open Public-University Entry's required_core is generic
+    ('...track-dependent'), not a specific named subject - must stay
+    unverifiable (None), never checked against one particular subject."""
+    result = check_eligibility(
+        aggregate=20,
+        track="general",
+        electives={},
+        core_grades={"Integrated Science": "F9", "Social Studies": "F9"},
+    )
+    floor = next(m for m in result.matches if "Open Public" in m.category)
+    assert floor.required_core_match is None
+
+
+
 def test_correct_electives_and_aggregate_eligible_for_medicine():
     result = check_eligibility(
         aggregate=8,

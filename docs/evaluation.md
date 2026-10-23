@@ -823,6 +823,99 @@ answer shown alongside it, because for this specific failure mode (unlike
 institution/programme invention) the real answer was always one
 `session_store` lookup away.
 
+### Failure 16: third-core subject locked to track instead of best-of-two, and required_core silently never checked (found 22 Oct 2026, not an LLM failure)
+
+**What happened:** the user asked a plain factual question - "does the
+aggregate have to be 3 core subjects and 3 electives" - and cited sources
+(ghanaunichecker.com, wassceexams.com, my-uniplan.com) describing the real
+WAEC rule as: English + Core Mathematics + **whichever of Integrated
+Science/Social Studies gives the better grade** + best 3 electives.
+`GradeInput` only ever collected ONE of Integrated Science/Social Studies,
+locked by the student's `track` (science -> Integrated Science always,
+everything else -> Social Studies always) - never the better of the two.
+WAEC's own published subject list (waecgh.org) confirms both are
+mandatory "Core Subjects for the examination" for every candidate
+regardless of track, so every real student has both grades; this schema
+simply never asked for the one it had locked out.
+
+**Why this is a different kind of failure from 3/9/11/12/13/14/15:** every
+one of those was the chat model misbehaving around correct underlying
+data. This is a bug in the deterministic calculation itself, found not by
+watching the model fail but by a user fact-checking the domain rule
+against external sources - a useful reminder that "deterministic" and
+"correct" aren't the same guarantee, and that this project's own sourcing
+discipline (check a claim against a named source before trusting it)
+applies to the code's own domain logic too, not just to chat's claims
+about schools.
+
+**A second, related bug the fix surfaced while auditing the same code
+path:** `programmes.json`'s `required_core` field (e.g. Medicine/Dentistry
+requiring "Integrated Science" specifically, Business/Finance requiring
+"Social Studies" specifically - itself correctly sourced data) was never
+read by `check_eligibility` at all. A student could be marked eligible
+for Medicine on aggregate and electives alone, with no check that their
+actual Integrated Science grade was even a credit pass - and the
+track-locked schema made this impossible to fix properly in the first
+place, since a science-track student's Social Studies grade (needed to
+check Business/Finance's requirement for them) was never collected
+either.
+
+**Fix - both bugs needed the same underlying data-collection change:**
+1. `app/models/grading.py`: `GradeInput` now requires BOTH
+   `integrated_science` and `social_studies` (removed the single
+   track-locked `third_core`). `AggregateResult` gained `third_core_used`
+   so the chosen subject is always visible, not silently decided.
+2. `app/tools/aggregate_calculator.py`: the aggregate sum and credit gate
+   now use whichever of the two has the better (lower) point value,
+   regardless of track - ties break toward Integrated Science
+   (documented, since WAEC itself doesn't publish a tie-break rule and a
+   tie gives an identical aggregate either way). Both grades are always
+   recorded in `subject_points`, even the unused one.
+3. `app/models/eligibility.py` / `app/tools/eligibility_checker.py`: new
+   `required_core_match` field and `_check_required_core` - actually
+   reads `required_core`, checks it against the student's real grade in
+   whichever specific subject it names (Integrated Science or Social
+   Studies), independent of which one was used for the student's OWN
+   aggregate. Categories with generic `required_core` wording (the two
+   floor categories, HND) correctly stay `None` (unverifiable), never
+   guessed either way. New `core_grades` parameter on `check_eligibility`
+   is optional and defaults to `None` for backward compatibility -
+   existing callers that don't supply it simply get `required_core_match
+   = None`, not a behavior change forced on code that hasn't been
+   updated to pass it.
+4. `app/api/routes.py`: `/calculate` now passes the student's real
+   Integrated Science AND Social Studies grades through to
+   `check_eligibility`, not just whichever the old schema happened to
+   collect.
+5. `static/index.html`: the form now asks for both subjects as separate
+   fields (previously one field, relabelled by track) and the results
+   card shows which one was actually counted.
+
+Verified with 6 new tests in `tests/test_aggregate_calculator.py`
+(best-of-two selection working both directions - including a
+non-science-track student whose Integrated Science beats their Social
+Studies, and a science-track student whose Social Studies beats their
+Integrated Science, each confirming track no longer dictates the
+outcome) and 5 new tests in `tests/test_eligibility_checker.py`,
+including the exact motivating scenario: a student whose electives and
+aggregate both pass Medicine, but whose real Integrated Science grade is
+an outright fail (F9), is correctly marked ineligible for Medicine
+specifically (and the mirror case for Business/Social Studies) - while a
+student with no `core_grades` supplied at all gets the same unverifiable
+`None` every pre-existing caller already expected, confirmed not to
+regress.
+
+**What this doesn't fix:** `required_core`'s generic entries (e.g. the
+two floor categories' "Integrated Science or Social Studies
+(track-dependent)" wording) still aren't checked against anything
+specific - that's correct behavior (nothing concrete to check), not a
+remaining gap. The real remaining gap is the same one already true before
+this fix: `required_core` only ever names Integrated Science, Social
+Studies, English Language, or Core Mathematics across the whole file -
+if a category's real admission requirement ever named a different
+specific core subject, `_CHECKABLE_CORE_SUBJECTS` would need extending,
+and nothing currently alerts anyone that it should be.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

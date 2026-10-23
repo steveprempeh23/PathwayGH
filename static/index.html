@@ -298,9 +298,18 @@
           <select id="calcCoreMaths" class="grade-select"></select>
         </div>
         <div class="calc-field">
-          <label id="calcThirdCoreLabel" for="calcThirdCore">Integrated Science</label>
-          <select id="calcThirdCore" class="grade-select"></select>
+          <label for="calcIntegratedScience">Integrated Science</label>
+          <select id="calcIntegratedScience" class="grade-select"></select>
         </div>
+        <div class="calc-field">
+          <label for="calcSocialStudies">Social Studies</label>
+          <select id="calcSocialStudies" class="grade-select"></select>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+        Both are mandatory WASSCE core subjects for every student, regardless
+        of track - whichever gives you the better grade is the one counted
+        toward your aggregate. See docs/evaluation.md Failure 16.
       </div>
 
       <div class="calc-grid" style="margin-top:4px;">
@@ -400,7 +409,6 @@ const PROGRAMME_TO_TRACK = {
 };
 
 const calcProgramme = document.getElementById("calcProgramme");
-const calcThirdCoreLabel = document.getElementById("calcThirdCoreLabel");
 const calcModal = document.getElementById("calcModal");
 
 function populateElectiveSubjectSelects() {
@@ -414,14 +422,8 @@ function populateElectiveSubjectSelects() {
     '<option value="">— none —</option>' + options;
 }
 
-function updateThirdCoreLabel() {
-  const track = PROGRAMME_TO_TRACK[calcProgramme.value] || "non_science";
-  calcThirdCoreLabel.textContent = track === "science" ? "Integrated Science" : "Social Studies";
-}
-
 function onProgrammeChange() {
   populateElectiveSubjectSelects();
-  updateThirdCoreLabel();
 }
 calcProgramme.addEventListener("change", onProgrammeChange);
 onProgrammeChange(); // populate for the default selection on page load
@@ -459,6 +461,12 @@ function renderCalcResultCard(data) {
     (name) => agg.electives_used && !["English Language", "Core Mathematics", "Integrated Science", "Social Studies"].includes(name)
   );
   const droppedElectives = allElectiveNames.filter((name) => !agg.electives_used.includes(name));
+  const thirdCoreNote = agg.third_core_used
+    ? `<div style="font-size:11px;color:var(--muted);">
+        Third core counted toward aggregate: ${escapeHtml(agg.third_core_used)}
+        (the better of Integrated Science/Social Studies - see docs/evaluation.md Failure 16)
+      </div>`
+    : "";
   const electivesNote =
     agg.electives_used && agg.electives_used.length
       ? `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">
@@ -498,6 +506,7 @@ function renderCalcResultCard(data) {
   card.innerHTML = `
     <h3>Aggregate: ${agg.aggregate}</h3>
     <div style="margin-bottom:4px;">${gateLine}</div>
+    ${thirdCoreNote}
     ${electivesNote}
     <table>
       <thead><tr><th>Category</th><th>Band</th><th>Electives</th><th>Result</th></tr></thead>
@@ -730,7 +739,8 @@ document.getElementById("calcSubmit").addEventListener("click", async () => {
     grades: {
       english: document.getElementById("calcEnglish").value,
       core_mathematics: document.getElementById("calcCoreMaths").value,
-      third_core: document.getElementById("calcThirdCore").value,
+      integrated_science: document.getElementById("calcIntegratedScience").value,
+      social_studies: document.getElementById("calcSocialStudies").value,
       electives,
       track: PROGRAMME_TO_TRACK[calcProgramme.value] || "non_science",
     },

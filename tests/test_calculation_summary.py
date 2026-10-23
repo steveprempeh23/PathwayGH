@@ -6,7 +6,7 @@ from app.models.grading import GradeInput, Track
 
 def test_summary_mentions_eligible_categories_and_institutions():
     grade_input = GradeInput(
-        english="A1", core_mathematics="A1", third_core="A1",
+        english="A1", core_mathematics="A1", integrated_science="A1", social_studies="A1",
         electives={"Biology": "A1", "Chemistry": "B2", "Physics": "B2"},
         track=Track.science,
     )
@@ -25,7 +25,7 @@ def test_summary_mentions_eligible_categories_and_institutions():
 
 def test_summary_mentions_failed_credit_gate():
     grade_input = GradeInput(
-        english="A1", core_mathematics="D7", third_core="A1",
+        english="A1", core_mathematics="D7", integrated_science="A1", social_studies="A1",
         electives={"E1": "A1", "E2": "A1", "E3": "A1"},
         track=Track.non_science,
     )
@@ -42,7 +42,7 @@ def test_summary_mentions_failed_credit_gate():
 
 def test_summary_lists_ineligible_categories_too():
     grade_input = GradeInput(
-        english="C6", core_mathematics="C6", third_core="C6",
+        english="C6", core_mathematics="C6", integrated_science="C6", social_studies="C6",
         electives={"Government": "C6", "History": "C6", "Literature in English": "C6"},
         track=Track.non_science,
     )

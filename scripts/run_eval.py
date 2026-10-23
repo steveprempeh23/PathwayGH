@@ -81,7 +81,7 @@ def case_invalid_grade_code() -> EvalResult:
         GradeInput(
             english="Z9",  # not a real WASSCE grade
             core_mathematics="B2",
-            third_core="C4",
+            integrated_science="C4", social_studies="C4",
             electives={"Biology": "B2", "Chemistry": "B3", "Physics": "C4"},
             track=Track.science,
         )
@@ -207,7 +207,7 @@ def case_credit_gate_catches_numeric_edge_case() -> EvalResult:
         GradeInput(
             english="A1",
             core_mathematics="D7",
-            third_core="A1",
+            integrated_science="A1", social_studies="A1",
             electives={"E1": "A1", "E2": "A1", "E3": "A1"},
             track=Track.non_science,
         )

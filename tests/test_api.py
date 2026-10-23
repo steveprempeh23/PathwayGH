@@ -168,7 +168,7 @@ def test_calculate_endpoint_is_deterministic_and_matches_real_categories():
             "grades": {
                 "english": "A1",
                 "core_mathematics": "A1",
-                "third_core": "A1",
+                "integrated_science": "A1", "social_studies": "A1",
                 "electives": {"Biology": "A1", "Chemistry": "B2", "Physics": "B2"},
                 "track": "science",
             }
@@ -201,7 +201,7 @@ def test_calculate_endpoint_rejects_invalid_grade():
             "grades": {
                 "english": "Z9",
                 "core_mathematics": "B2",
-                "third_core": "A1",
+                "integrated_science": "A1", "social_studies": "A1",
                 "electives": {"Biology": "B2", "Chemistry": "B3", "Physics": "B3"},
                 "track": "science",
             }
@@ -224,7 +224,7 @@ def test_calculate_with_session_id_records_history_for_followup_chat():
             "grades": {
                 "english": "A1",
                 "core_mathematics": "A1",
-                "third_core": "A1",
+                "integrated_science": "A1", "social_studies": "A1",
                 "electives": {"Biology": "A1", "Chemistry": "B2", "Physics": "B2"},
                 "track": "science",
             },
@@ -257,7 +257,7 @@ def test_calculate_with_session_id_persists_structured_result_for_failure_15():
             "grades": {
                 "english": "A1",
                 "core_mathematics": "A1",
-                "third_core": "A1",
+                "integrated_science": "A1", "social_studies": "A1",
                 "electives": {"Biology": "A1", "Chemistry": "B2", "Physics": "B2"},
                 "track": "science",
             },
@@ -279,7 +279,7 @@ def test_calculate_without_session_id_does_not_touch_history():
         "/calculate",
         json={
             "grades": {
-                "english": "B2", "core_mathematics": "B2", "third_core": "B2",
+                "english": "B2", "core_mathematics": "B2", "integrated_science": "B2", "social_studies": "B2",
                 "electives": {"Biology": "B2", "Chemistry": "B2", "Physics": "B2"},
                 "track": "science",
             }
