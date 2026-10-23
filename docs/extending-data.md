@@ -63,15 +63,42 @@ Field notes:
   a source for.
 
 After adding a category:
-1. Run `python scripts/build_check.py` - it asserts 7 categories currently
-   (`check_datasets_load`); update that number once you've added one.
+1. Run `python scripts/build_check.py` - it asserts the current category
+   count (`check_datasets_load`, 9 as of the Private University Entry /
+   Physician Assistantship additions); update that number once you've
+   added one.
 2. Add a test case in `tests/test_eligibility_checker.py` exercising the
    new category, the way every existing category already has coverage.
-3. Consider regenerating the synthetic cohort dataset
+3. If the category's `required_core` names a specific subject (Integrated
+   Science or Social Studies, not generic "...track-dependent" wording),
+   confirm `app/tools/eligibility_checker.py::_CHECKABLE_CORE_SUBJECTS`
+   already covers it - it does for those two, but would need extending if
+   a category ever named a different specific core subject (see
+   `docs/evaluation.md` Failure 16).
+4. Update `tests/test_api.py`'s hardcoded category-name set and
+   `tests/test_data_analysis.py`'s hardcoded row count (`5 years * N
+   categories * 12 students`) - both assert exact counts/sets that a new
+   category changes. `scripts/run_eval.py` does NOT need updating for a
+   new category (it doesn't hardcode category counts), but DOES need
+   updating if you change `GradeInput`'s shape (see Failure 16's fix for
+   an example of a schema change that broke it).
+5. Consider regenerating the synthetic cohort dataset
    (`python scripts/generate_synthetic_outcomes.py`) so Question 9's
    analysis tool has rows for the new category too - it reads
    `programme_categories` directly, so this is automatic once the JSON is
    updated, but re-run the script to actually produce the new CSV rows.
+
+**Before adding institutions to a category's `institutions_example`,
+verify their public/private status yourself - don't trust a label just
+because it's handed to you.** The "Private University Entry" category
+exists because a user-supplied list of 17 "private" universities turned
+out to include two (UPSA, GCTU) that are legally PUBLIC under GTEC's own
+2026 classification, established by their own Acts of Parliament -
+caught only because each one was independently cross-checked against
+GTEC's own accredited-institutions list before being filed (see
+`docs/evaluation.md`'s addendum after Failure 13). The same discipline
+applies to every institution name added anywhere in this file, not just
+new categories.
 
 ## Adding sourced facts to the RAG corpus
 
@@ -95,33 +122,64 @@ searches. To add a new fact (e.g. detail on a category you just added):
 4. Test retrieval manually once Ollama is running:
    `python -c "from app.rag.retriever import retrieve; print(retrieve('your test query'))"`
 
-## Adding real per-school data (a bigger undertaking - not done yet)
+## Adding real per-institution programme data (the mechanism now exists - UG and KNUST are done, everything else isn't)
 
-Right now, "schools" only exist as the flat `institutions_example` list
-per category - there's no per-school entity with its own cutoffs, its own
-programme list, or its own admission cycle data. Building that properly
-would need:
+As of Failure 13's fix, there IS a per-institution entity with its own
+real programmes and cutoffs: `data/structured/institution_programmes.json`,
+queried by `app/tools/institution_programme_lookup.py`
+(`lookup_institution_programmes`, exposed to chat). It currently has 197
+rows across exactly 2 institutions - University of Ghana (63 rows, from
+UG's own official admissions page) and KNUST (134 rows, from a
+third-party site, flagged lower-confidence). Every other institution
+anywhere in `programmes.json`'s `institutions_example` lists - UCC, UEW,
+UDS, UHAS, UENR, UMaT, CKT-UTAS, SDD-UBIDS, UPSA, GIMPA, GCTU, UniMAC,
+AAMUSTED, all 10 Technical Universities, and all 15 private universities
+- has ZERO rows here. `lookup_institution_programmes` returns
+`has_data_for_institution: False` for all of them, correctly, rather than
+guessing.
 
-1. **A new dataset**, e.g. `data/structured/institutions.json`, with one
-   entry per school: name, which programme categories it actually offers,
-   and (only if genuinely sourced) its own specific cutoffs separate from
-   the category-level `approximate_band`. Follow the same
-   `confidence`/`_source_urls` discipline as `programmes.json` - most
-   school-specific current cutoffs are not public in a clean, citable
-   form, so expect most entries to be `approximate_band` or omitted rather
-   than invented.
-2. **A new deterministic tool** (`app/tools/`) querying that dataset,
-   mirroring `eligibility_checker.py`'s structure - and a decision on
-   whether to expose it to chat (per Failure 6's reasoning, probably
-   *not* as a free-text-parsed tool; more likely as another `/calculate`-
-   style deterministic lookup, or a dropdown of categories on the results
-   card linking to a school list).
-3. **Real sourcing work** - this is the actual bottleneck, not the code.
-   Each school's current admission requirements would need to come from
-   that school's own published guidance, not estimated. Budget this as a
-   research task, not a coding task.
+**To add another institution:**
 
-This is scoped out deliberately rather than built hastily - a half-sourced
-schools database would be a worse failure mode than the current honest gap
-("we don't have that, here are illustrative examples"), per exactly the
-reasoning in Failure 7.
+1. **Source a real spreadsheet or published list** for that institution's
+   own cutoff points - its own official admissions page if possible (like
+   UG's), a third-party aggregator if not (like KNUST's, but mark
+   `confidence: "third_party_source"` and say so explicitly, same as
+   KNUST).
+2. **Transcribe it verbatim** into the same row shape already in
+   `institution_programmes.json` (`institution`, `college_or_category`,
+   `programme`, `cutoff_display`, `level`, `confidence`, `source_url`,
+   plus `fee_paying_cutoff_display`/`subject_requirements`/`notes` where
+   the source actually has them) - don't normalize or "clean up" a messy
+   source value like UG's `"16(24)M"` into a single number; preserve it
+   and let the reader see the real source text. A one-off transcription
+   script (pandas reading the raw spreadsheet, writing the JSON) is the
+   right tool for this, not manual JSON editing for more than a handful
+   of rows.
+3. **No code changes needed** - `lookup_institution_programmes` and
+   `list_institutions` both already read whatever's in the data files;
+   adding rows is purely a data change.
+4. **Update `institution_programmes.json`'s own `_coverage_note`** to
+   remove the institution from the "has no data" list.
+5. Re-run `pytest tests/` - nothing should break from adding rows alone,
+   but add a test exercising the new institution's data the way
+   `test_institution_programmes_carries_real_rows_even_when_model_narration_invents_others`
+   does for UG.
+
+**Why this is still a real bottleneck, not a code gap:** most Ghanaian
+institutions don't publish a clean, citable, machine-readable cutoff list
+the way UG does. Budget finding one per institution as a research task,
+same as this file already said before Failure 13 - the difference now is
+there's a working end-to-end mechanism (data file → tool → chat →
+deterministic rendering → fabrication-guard backstop) ready to receive
+real data the moment someone sources it, instead of nothing at all.
+
+**The fabrication-guard backstop (`app/tools/institution_claim_guard.py`,
+see Failure 14) only knows about institutions already in
+`programme_lookup.all_known_institution_names()`** - i.e. institutions
+that appear in SOME category's `institutions_example` in `programmes.json`.
+An institution that exists in the real world but isn't named anywhere in
+this project's data yet can't be flagged if the chat model mentions it,
+simply because the guard has no way to know it should be checking that
+name at all. Adding an institution to a category's `institutions_example`
+(the earlier section of this file) is what makes the guard aware of it -
+a reason to do that step even before sourcing per-programme data for it.

@@ -200,10 +200,45 @@ live Ollama instance before relying on this for the demo.
 - `analyze_outcomes` — deterministic cohort statistics (mean/median/trend)
   over the synthetic demonstration dataset. The model decides when a
   question is asking about aggregated/historical patterns rather than a
-  single student's own numbers.
+  single student's own numbers. `data_source` always carries the "this is
+  synthetic, not real" caveat from code, not from the model's own prose
+  (see `docs/evaluation.md` Failure 9).
+- `list_institutions` — a programme category's real, sourced
+  `institutions_example` list, copied verbatim from `programmes.json`.
+  Added after a live run showed the model inventing institutions beyond
+  the real list for a category (Failure 12).
+- `lookup_institution_programmes` — a named institution's real degree
+  programmes and cutoff points, from `data/structured/institution_programmes.json`.
+  Currently covers **only University of Ghana and KNUST** (197 real rows
+  transcribed from each institution's own published cutoff list); every
+  other institution correctly returns `has_data_for_institution: False`
+  rather than a guess. Added after a live run showed the model inventing
+  institution-specific programme titles with no data behind them at all
+  (Failure 13).
+- `get_saved_eligibility` — the REAL, already-computed eligibility
+  verdict for one category, from this session's most recent "Enter My
+  Grades" submission (stored separately from the chat-visible text
+  summary - see `calculations` table in `app/core/session_store.py`).
+  Added after a live run showed the model directly contradicting an
+  already-computed result by misreading its own earlier text (Failure 15).
 - `submit_recommendation` — the structured-output mechanism (Question 5):
   the model's final qualitative answer must be delivered through this
   tool, validated against the `Recommendation` schema, not as free text.
+
+**Two deterministic safety-net guards run on every final reply, independent
+of which tools the model chose to call** (`app/tools/institution_claim_guard.py`,
+`app/tools/eligibility_claim_guard.py`). These exist because by Failure 14
+it became clear that "add a real tool + tell the model to use it" wasn't
+sufficient on its own: a live run showed the model skipping a real,
+available tool entirely across a whole structured multi-paragraph answer,
+inventing institutions and programmes with full confidence, only
+discovering the truth when directly challenged. Neither guard can rewrite
+the model's sentence - no code should silently edit free-form natural
+language - but both surface a deterministic flag or correction alongside
+whatever the model wrote, rendered as its own warning card in the UI. See
+`docs/evaluation.md` Failures 14 and 15 for the full account of each, and
+`docs/architecture.md`'s "Justification of Key Decisions" for why this is
+a different class of fix from every tool added before it.
 
 **Deliberately NOT available to the chat model:** `compute_aggregate` and
 `check_eligibility`. These exist as real, tested functions
@@ -225,16 +260,26 @@ belong in code, not LLM judgment.
 
 See [docs/evaluation.md](docs/evaluation.md) for the full 15-case evaluation
 set (9 automated, 6 requiring a live Ollama run + human judgment) and the
-writeup of eight real failures caught during development and live use — a
-false-positive eligibility bug, a silent-blank-reply bug on tool-hop
-exhaustion, the small model fabricating programme category names in a live
-chat, the model getting stuck re-asking for grades it already had, the
-model faking an entire tool call in plain text with no real computation
-behind it, the architectural decision to remove structured grade
-extraction from chat's tools entirely after it failed in four different
-ways across two different models, the model fabricating school names
-attributed to a tool that never returns them, and the calculator and chat
-never sharing any context at all — with how each was found and addressed.
+writeup of **sixteen** real issues caught during development and live use.
+Most are LLM behavior failures (the small local model fabricating category
+names, institutions, or entire programme titles with no data behind them;
+contradicting an already-computed result; getting stuck in loops; faking a
+tool call as plain-text JSON instead of a real one); two (Failures 11 and
+16) are correctness bugs in the project's own deterministic code, found by
+fact-checking a domain rule against external sources rather than by
+watching the model misbehave - a reminder that "deterministic" isn't the
+same guarantee as "correct." Each entry states plainly what the fix does
+and does NOT cover; several (Failures 9, 14, 15) explicitly note that no
+code can force a small model's free-text reply to only say what a tool
+returned, only that the real answer is now surfaced alongside it
+regardless.
+
+**Known gap in the eval set itself:** the 15 cases above predate Failures
+11-16. None of the 9 automated cases currently exercise the aggregate
+boundary bug, institution/programme fabrication, the eligibility
+contradiction, or the Integrated-Science/Social-Studies fix - the single
+highest-value next addition to this evaluation set would be adversarial
+cases for each.
 
 Run the automated half:
 ```
@@ -252,13 +297,42 @@ python scripts/run_eval.py
   live CSSPS/university feed, and real sources were found to disagree by
   a point even for the same programme and cycle. Neither kind is a
   guarantee for a future cycle.
+- **Real per-institution programme/cutoff data exists for only 2 of the
+  30+ institutions named across this project** (University of Ghana and
+  KNUST, in `data/structured/institution_programmes.json` - see
+  `docs/extending-data.md`'s "Adding real per-institution programme data"
+  section for how to extend it). Every other institution - UCC, UEW, UDS,
+  UHAS, UENR, UMaT, CKT-UTAS, SDD-UBIDS, UPSA, GIMPA, GCTU, UniMAC,
+  AAMUSTED, all 10 Technical Universities, and all 15 private
+  universities - has category-level examples only, no institution-level
+  programme list.
+- **The private-university aggregate band (`"Private University Entry"`)
+  is a single loose approximation across 15 very different institutions**,
+  not individually sourced per school - some (e.g. Ashesi University) are
+  known to be considerably more selective in practice than the band
+  suggests. See `programmes.json`'s `_private_university_category_note`.
+- **The deterministic claim guards (Failures 14, 15) are heuristic, not
+  exhaustive.** `institution_claim_guard.py` and `eligibility_claim_guard.py`
+  use substring/regex matching tuned to the specific failure phrasings
+  actually observed live ("eligible"/"not eligible"/"no match"; "Bachelor"/
+  "HND"/"BSc"/etc.). A model phrasing the same claim differently (e.g.
+  "you qualify for" instead of "eligible for") could slip past undetected
+  - these guards have not been stress-tested against paraphrases beyond
+  what was actually seen in live use.
+- **None of the Failure 11-16 fixes have been verified against the actual
+  running Ollama model, only against scripted `FakeChat` responses that
+  reproduce the exact observed bad behavior.** Every regression test
+  proves the deterministic guard/fix catches that specific failure
+  shape correctly - none of them measure whether the updated system
+  prompt rules (5c, 5e) actually reduced how often the real `llama3.1:8b`
+  produces that behavior in the first place. That measurement requires a
+  live Ollama run this build environment doesn't have.
 - Question 9's cohort dataset (`data/structured/historical_student_outcomes.csv`)
   remains fully synthetic — real per-student historical admissions records
   (who actually applied, their actual aggregate, whether they were
   actually admitted) are not published anywhere publicly, for any
   Ghanaian university, and no amount of searching changes that. This is a
-  genuine data-availability limit, not an oversight; see
-  `docs/extending-data.md`'s "Adding real per-school data" section.
+  genuine data-availability limit, not an oversight.
 - Scope is WASSCE→tertiary guidance only; BECE→SHS placement (CSSPS) was
   deliberately excluded for this build (see architecture.md scoping note).
 - Structured-output validation failures (from `submit_recommendation`) are
@@ -273,13 +347,27 @@ python scripts/run_eval.py
 
 See [docs/extending-data.md](docs/extending-data.md) for a concrete,
 step-by-step guide to adding programme categories, RAG source content, and
-(as a larger, properly-scoped undertaking) real per-school data.
+real per-institution programme data.
 
+**Highest-value next steps, in roughly descending order of impact:**
+- Add adversarial eval cases for Failures 11-16 to `scripts/run_eval.py` -
+  the current 15-case set predates all of them.
+- Run `scripts/run_eval.py`'s manual cases live against the actual
+  `llama3.1:8b` to measure whether the Failure 12/13/15 prompt-rule
+  changes (5b-5e) actually reduced the real model's error rate, rather
+  than relying solely on `FakeChat`-based regression tests that only
+  prove the guards catch what's already been observed.
+- Stress-test `institution_claim_guard`/`eligibility_claim_guard` against
+  paraphrased model wording ("qualify"/"meets the requirement" instead of
+  "eligible"), not just the exact phrasing already seen fail live.
+- Extend `institution_programmes.json` beyond University of Ghana and
+  KNUST - the highest-leverage data gap, since it's the one piece of
+  per-institution truth both the chat tool and the fabrication guard
+  depend on.
+- Source real, per-institution cutoffs for the "Private University Entry"
+  category instead of one shared approximate band across 15 institutions.
 - Extend to BECE→SHS (CSSPS) placement guidance.
 - Replace illustrative programme bands with a real, versioned cutoff dataset
   per admission cycle.
 - Add a feedback mechanism for guidance counsellors to flag incorrect
   recommendations.
-- Build a real per-school dataset with sourced, school-specific cutoffs
-  (see docs/extending-data.md's "Adding real per-school data" section for
-  why this is scoped out as a research task, not a quick coding addition).
