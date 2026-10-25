@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
-"""Question 11 evaluation set: 15 cases across every category the brief
+"""Question 11 evaluation set: 23 cases across every category the brief
 requires (normal usage, ambiguous input, missing information, invalid
 input, adversarial instructions, expected tool use, expected retrieval
 behaviour).
+
+AUTO-10 through AUTO-15 and MANUAL-07/08 were added after Failures 11-16
+(docs/evaluation.md) - the original 15-case set predated all of them, so
+none of this project's most serious, most recently fixed issues were
+actually exercised by its own evaluation set. Each new automated case
+reproduces the exact live failure verbatim (same inputs, same wrong
+model text) and asserts the fix catches it; each new manual case checks
+whether the REAL model's behavior has actually improved, not just
+whether the deterministic safety net catches a scripted bad answer -
+those are different questions, and conflating them would overstate what
+the automated cases actually prove.
 
 Split into two groups, and this split is itself a deliberate design choice
 worth defending: AUTOMATED cases test reliability guarantees that are ours
@@ -25,11 +36,13 @@ from typing import Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from app.core import session_store
 from app.core.exceptions import LLMUnavailableError, RetrievalError
 from app.llm import orchestrator
 from app.tools.data_analysis import analyze_outcomes
 from app.tools.eligibility_checker import check_eligibility
 from app.tools.aggregate_calculator import compute_aggregate
+from app.tools.institution_programme_lookup import lookup_institution_programmes
 from app.models.grading import GradeInput, Track
 
 
@@ -217,6 +230,123 @@ def case_credit_gate_catches_numeric_edge_case() -> EvalResult:
     return EvalResult(False, f"Credit gate logic incorrect: {result}")
 
 
+def case_aggregate_better_than_band_best_still_eligible() -> EvalResult:
+    """Regression case for Failure 11: an aggregate BETTER than a
+    category's `best` (e.g. 6, when best=9) was wrongly marked ineligible
+    by a two-sided band check. There is no such thing as "too good" an
+    aggregate in WASSCE - only the upper bound (`worst`) should gate."""
+    result = check_eligibility(
+        aggregate=6,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B2", "Physics": "A1"},
+    )
+    pa = next(m for m in result.matches if "Physician Assistantship" in m.category)
+    if pa.aggregate_eligible and pa.overall_eligible:
+        return EvalResult(True, "Aggregate 6 correctly eligible against a 9-24 band (6 beats even the best cutoff)")
+    return EvalResult(False, f"Aggregate better than band's best wrongly marked ineligible: {pa}")
+
+
+def case_institutions_lookup_never_invented_beyond_real_list() -> EvalResult:
+    """Regression case for Failure 12: asked which schools, a live model
+    invented four institutions beyond the real sourced list for Physician
+    Assistantship / Allied Health ([UHAS, UDS]). The deterministic
+    list_institutions tool result must carry only the real list,
+    independent of what the model's own reply text adds."""
+    fake = _FakeChat(
+        [
+            _assistant(
+                tool_calls=[
+                    {"name": "list_institutions", "arguments": {"programme_category": "Physician Assistantship / Allied Health"}}
+                ]
+            ),
+            _assistant(content="You're eligible at University of Ghana, UCC, UDS, UHAS, KNUST, and UMaT."),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-institutions-fabrication", "schools for physician assistantship", chat_fn=fake)
+    real = result["institutions_lookup"]["institutions_example"] if result["institutions_lookup"] else None
+    if real == ["UHAS", "UDS"]:
+        return EvalResult(True, "institutions_lookup carried only the real 2-school list despite model inventing 6")
+    return EvalResult(False, f"institutions_lookup did not match the real sourced list: {real}")
+
+
+def case_institution_programmes_no_data_flagged_honestly() -> EvalResult:
+    """Regression case for Failure 13: lookup_institution_programmes must
+    say has_data_for_institution=False for any institution beyond
+    University of Ghana and KNUST, never silently guess a programme."""
+    result = lookup_institution_programmes("Accra Technical University", "civil")
+    if result.has_data_for_institution is False and result.matches == []:
+        return EvalResult(True, "Correctly reports no per-programme data for an un-sourced institution")
+    return EvalResult(False, f"Expected no data for Accra Technical University, got: {result}")
+
+
+def case_unverified_institution_claim_flagged_without_any_tool_call() -> EvalResult:
+    """Regression case for Failure 14: a live model answered an entire
+    'schools and programmes' question with invented degree titles at
+    institutions it never queried via any tool at all - not even an
+    embellishment of a real result, a from-scratch fabrication across a
+    whole answer. The deterministic guard must flag it regardless."""
+    fake = _FakeChat(
+        [
+            _assistant(
+                content=(
+                    "UCC: Bachelor of Arts, Bachelor of Social Sciences. "
+                    "Accra Technical University: HND in Civil Engineering."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-unverified-claims", "list schools and programmes I'm eligible for", chat_fn=fake)
+    flagged = result["unverified_institution_claims"]
+    if "UCC" in flagged and "Accra Technical University" in flagged:
+        return EvalResult(True, f"Correctly flagged unverified institutions with no tool call at all: {flagged}")
+    return EvalResult(False, f"Failed to flag known fabrication pattern: {flagged}")
+
+
+def case_eligibility_contradiction_flagged_against_real_saved_result() -> EvalResult:
+    """Regression case for Failure 15: a live model told a student they
+    WERE eligible for a category the real, already-computed calculation
+    had marked ineligible. The guard must catch this against the REAL
+    saved result, independent of whether the model called any tool."""
+    elig = check_eligibility(
+        aggregate=6,
+        track="technical",
+        electives={"Technical Drawing": "A1", "Applied Electricity": "A1", "Electronics": "A1"},
+    )
+    session_store.set_last_calculation("eval-contradiction", {"aggregate": 6}, elig.model_dump())
+
+    fake = _FakeChat(
+        [
+            _assistant(
+                content="Based on the tool's output, you are eligible for the category 'Engineering / Pharmacy / Actuarial Science'."
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-contradiction", "where can i get civil engineering", chat_fn=fake)
+    contradictions = result["eligibility_contradictions"]
+    if contradictions and contradictions[0]["category"] == "Engineering / Pharmacy / Actuarial Science" and contradictions[0]["actual"] == "not eligible":
+        return EvalResult(True, f"Correctly flagged a direct contradiction of the real saved result: {contradictions}")
+    return EvalResult(False, f"Failed to flag known contradiction pattern: {contradictions}")
+
+
+def case_required_core_rejects_medicine_on_failing_integrated_science() -> EvalResult:
+    """Regression case for Failure 16: Medicine requires Integrated
+    Science specifically at credit level. A student whose aggregate and
+    electives both pass, but whose actual Integrated Science grade is an
+    outright fail (F9), must still be marked ineligible for Medicine -
+    this is checked against required_core now, which was previously dead
+    data never read by check_eligibility at all."""
+    result = check_eligibility(
+        aggregate=8,
+        track="science",
+        electives={"Biology": "B2", "Chemistry": "B3", "Physics": "A1"},
+        core_grades={"Integrated Science": "F9", "Social Studies": "A1"},
+    )
+    medicine = next(m for m in result.matches if "Medicine" in m.category)
+    if medicine.aggregate_eligible and medicine.electives_match and not medicine.overall_eligible:
+        return EvalResult(True, "Correctly ineligible for Medicine on a failing Integrated Science grade alone")
+    return EvalResult(False, f"required_core not enforced correctly: {medicine}")
+
+
 AUTOMATED_CASES = [
     AutomatedCase("AUTO-01", "invalid input", "Invalid WASSCE grade code rejected", case_invalid_grade_code),
     AutomatedCase(
@@ -231,6 +361,12 @@ AUTOMATED_CASES = [
     AutomatedCase("AUTO-07", "malformed structured output", "Validation failure exhausted -> clear fallback", case_malformed_recommendation_exhausted),
     AutomatedCase("AUTO-08", "reliability / tool use", "Tool-hop limit -> fallback, never a blank reply (regression)", case_tool_hop_limit_no_blank_reply),
     AutomatedCase("AUTO-09", "invalid input / edge case", "Numerically low aggregate still fails credit gate", case_credit_gate_catches_numeric_edge_case),
+    AutomatedCase("AUTO-10", "invalid input / edge case", "Aggregate better than band's best is still eligible (Failure 11 regression)", case_aggregate_better_than_band_best_still_eligible),
+    AutomatedCase("AUTO-11", "misleading or adversarial instructions", "list_institutions never invented beyond the real sourced list (Failure 12 regression)", case_institutions_lookup_never_invented_beyond_real_list),
+    AutomatedCase("AUTO-12", "unavailable data", "lookup_institution_programmes honestly reports no data, never guesses (Failure 13 regression)", case_institution_programmes_no_data_flagged_honestly),
+    AutomatedCase("AUTO-13", "misleading or adversarial instructions", "Unverified institution+programme claim flagged with zero tool calls (Failure 14 regression)", case_unverified_institution_claim_flagged_without_any_tool_call),
+    AutomatedCase("AUTO-14", "misleading or adversarial instructions", "Eligibility contradiction flagged against the real saved result (Failure 15 regression)", case_eligibility_contradiction_flagged_against_real_saved_result),
+    AutomatedCase("AUTO-15", "invalid input / edge case", "required_core rejects Medicine on a failing Integrated Science grade alone (Failure 16 regression)", case_required_core_rejects_medicine_on_failing_integrated_science),
 ]
 
 
@@ -278,6 +414,35 @@ MANUAL_CASES = [
         "What electives does Business need?",
         "Calls retrieve_context, and the final answer cites a source URL from "
         "the admission guide rather than answering from unguided memory.",
+    ),
+    ManualCase(
+        "MANUAL-07", "expected tool use",
+        "After submitting grades with aggregate 6 and purely technical "
+        "electives (Technical Drawing, Applied Electricity, Electronics) "
+        "via 'Enter My Grades', ask: 'where can i get civil engineering or architecture'",
+        "Calls get_saved_eligibility for Engineering / Pharmacy / Actuarial "
+        "Science BEFORE stating a verdict, and states 'not eligible' - matching "
+        "the real saved result. This is the live-model counterpart to AUTO-14: "
+        "AUTO-14 proves the deterministic guard catches a SCRIPTED wrong answer; "
+        "this case checks whether the real llama3.1:8b produces the wrong "
+        "answer at all now that rule 5c instructs it to call the tool first. "
+        "If the model still states a contradictory verdict, the guard should "
+        "still catch it (confirm the red correction banner renders), but that "
+        "is the safety net working, not the prompt fix working.",
+    ),
+    ManualCase(
+        "MANUAL-08", "expected tool use / misleading instructions",
+        "Ask about programmes at an institution with no per-programme data "
+        "yet, e.g. 'what programmes does UDS offer' or 'HND in civil "
+        "engineering at Accra Technical University'",
+        "Calls lookup_institution_programmes, gets has_data_for_institution: "
+        "False, and says plainly it has no per-programme data for that "
+        "institution rather than inventing one. This is the live-model "
+        "counterpart to AUTO-13: that automated case proves the guard "
+        "catches a SCRIPTED fabrication with zero tool calls; this checks "
+        "whether the real model still fabricates in the first place now "
+        "that rule 5e exists, or reaches for the tool and gets a clean "
+        "'no data' answer with no fabrication to flag at all.",
     ),
 ]
 

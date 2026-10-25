@@ -28,6 +28,49 @@ A conversational advisor that:
 - Explicitly says when it doesn't know something, rather than inventing a
   cutoff.
 
+## Success Criteria
+
+Three measurable, independently-checkable criteria for whether this
+system is actually useful, not just functional - each one is something a
+reader can verify themselves with a single command, not a claim taken on
+faith:
+
+1. **Deterministic correctness: 100% of automated evaluation cases pass.**
+   `python scripts/run_eval.py` runs 15 automated cases covering invalid
+   input, model/tool/retrieval failure, malformed structured output, and
+   six regression cases for real bugs found during development (an
+   aggregate boundary error, a required-core-subject check that was
+   previously silently skipped, and others - see `docs/evaluation.md`
+   Failures 11-16). A student's calculated aggregate and eligibility
+   verdict are the two numbers this entire system exists to get right;
+   this criterion is "they are right, provably, every time," not "they
+   seem plausible."
+2. **Zero unflagged fabrication in a fixed adversarial batch.** Three of
+   the automated cases above (AUTO-13, AUTO-14, and the pre-existing
+   source-citation test in `tests/test_orchestrator.py`) reproduce the
+   exact wording of real fabrications a live model produced during
+   testing - inventing institutions, inventing degree programmes, and
+   contradicting an already-computed eligibility result - and assert the
+   deterministic guard layer catches every one. "Useful" for this system
+   specifically means a student is never left trusting an unflagged wrong
+   answer about their own eligibility, even when the underlying language
+   model gets it wrong.
+3. **Honest refusal rate on out-of-scope questions.** `MANUAL-05` and
+   `MANUAL-08` (see `docs/evaluation.md`'s evaluation set) check that a
+   question with no real data behind it - a cutoff for a university this
+   system has no data for, a specific programme at an institution with no
+   sourced cutoffs - gets an honest "I don't have that" rather than an
+   invented number. This is a live-judgment criterion (needs a human
+   running the manual cases against a live Ollama instance, recorded in
+   `docs/evaluation.md`), not an automated one - stated here as a
+   criterion precisely because it can't be faked by only reporting the
+   automated cases that can.
+
+These are deliberately narrow and mechanical rather than aspirational
+("improves student outcomes," "saves counsellor time") - a measurable
+criterion this project can actually check today is worth more than a
+plausible-sounding one it can't.
+
 ## Architecture
 
 See [docs/architecture.md](docs/architecture.md) for the full diagram,
@@ -114,17 +157,34 @@ standalone `docker build` + `docker run` without compose (no bind mount in
 that case, so the baked-in copy is what actually runs).
 
 **Verification status, stated plainly:** this Dockerfile/compose setup has
-been validated two ways without a Docker runtime available in the build
+been validated three ways without a Docker runtime available in the build
 environment: (1) the exact file set the `Dockerfile`'s `COPY` instructions
 bring in was replicated into a clean directory, installed into a fresh
 virtualenv from `requirements.txt`, and run with `uvicorn` using the same
 environment variables `docker-compose.yml` sets - `/health`, the web UI,
 session creation, and `/analytics` all responded correctly. (2)
 `docker-compose.yml`'s YAML was validated for correct syntax and structure.
-**Neither of these is a substitute for actually running `docker compose up
+(3) `scripts/docker_smoke_test.py` - a standalone script that hits
+`/health`, `/session/new`, and `/calculate` (including a second call to
+confirm the `calculations` table round-trips) over real HTTP - was run
+against a live instance of the actual app code and passed every check
+(`--skip-llm` mode, since no Ollama was available either). **None of
+these three is a substitute for actually running `docker compose up
 --build` once** - container networking (`app` reaching `ollama` by service
-name), volume mount permissions, and the real build step itself still need
-a genuine Docker run before you rely on this for the demo.
+name), volume mount permissions, and the real build step itself were never
+exercised by any of them. What they rule out is the app's own code being
+broken; what they can't rule out is Docker-specific wiring being broken.
+**Run this the first time you have a real Docker daemon, before a demo
+depends on it:**
+
+```bash
+docker compose up --build -d
+docker compose exec ollama ollama pull llama3.1:8b
+docker compose exec ollama ollama pull nomic-embed-text
+python scripts/docker_smoke_test.py            # full check, including live chat
+# or, before both models finish pulling:
+python scripts/docker_smoke_test.py --skip-llm # everything except /chat
+```
 
 ## RAG Design
 
