@@ -916,6 +916,75 @@ if a category's real admission requirement ever named a different
 specific core subject, `_CHECKABLE_CORE_SUBJECTS` would need extending,
 and nothing currently alerts anyone that it should be.
 
+### Failure 17: category-level programme inference, numerically lucky but methodologically unsound (observed live, Oct 2026)
+
+**What happened:** a student asked "can i do law." The model answered:
+"Yes, you are eligible for the General Humanities / Social Sciences /
+Education category, which includes law programmes... at institutions
+such as the University of Ghana, UCC, UEW, UDS, or AAMUSTED." No tool was
+called. Checking `institution_programmes.json` directly: Law IS real data
+in this project - University of Ghana's "Bachelor of Laws" and KNUST's
+"LLB Law" both have a real cutoff of **6**, far stricter than the broad
+Humanities category's 6-24 band shown to the student. This particular
+student's aggregate was exactly 6, so the answer was numerically correct
+- by coincidence, not by checking.
+
+**Why this is worse than it looks at first glance:** the same reasoning
+pattern ("the category is eligible, so a programme under it should be
+reachable too") would have confidently told a student with aggregate 15 -
+comfortably "Eligible" for the broad category - that they could do Law,
+when the real cutoff of 6 would have excluded them. A single correct
+answer masked an unsound method that would fail the next student who
+asked the same question with a worse (but still category-eligible)
+aggregate. This is also the first failure in this project caught not by
+an obviously wrong answer, but by independently verifying a *right*
+answer's reasoning - worth noting for its own sake: "the output looks
+correct" is not the same bar as "the output is correct for a sound
+reason," and this project's sourcing discipline applies to checking its
+own right answers, not only its obviously wrong ones.
+
+**A second thing this exposed: a real gap in Failure 14's guard regex.**
+`institution_claim_guard.py`'s keyword pattern matched "programme in" and
+"course in" as fixed phrases - not the bare words "programme"/"programmes"
+on their own. The actual live wording, "law programmes" / "a law
+programme," matched neither. Directly tested: `detect_unverified_institution_claims`
+returned an empty list for the exact live reply text before this fix.
+
+**Fix:**
+1. `app/tools/institution_claim_guard.py`'s `_DEGREE_KEYWORD_RE` widened to
+   match the bare words `programmes?`, `courses?`, and `degree`, not just
+   the fixed phrases "programme in"/"course in"/"degree in". Re-tested
+   against the exact live reply: now correctly flags all five named
+   institutions. Full test suite re-run to confirm this broadening
+   introduced no new false positives against the existing battery (it
+   did not - all pre-existing tests still pass unchanged).
+2. New system prompt rule 5f: explicitly forbids inferring a named
+   programme's eligibility from its broad category's eligibility alone,
+   names this exact live case as the reason, and requires calling
+   `lookup_institution_programmes` before naming any specific programme -
+   whether or not it seems to obviously belong to an already-eligible
+   category.
+3. Regression test
+   `test_category_level_programme_inference_flagged_despite_being_numerically_lucky`
+   (`tests/test_orchestrator.py`) reproduces the live reply text verbatim
+   and asserts all five named institutions are now flagged.
+4. New automated eval case `AUTO-16` and manual case `MANUAL-09`
+   (`scripts/run_eval.py`) - the same automated/manual split used for
+   every prompt-rule fix in this project: the automated case proves the
+   guard catches the scripted pattern; the manual case is what actually
+   tells you whether the real model's reasoning improved.
+
+**What this doesn't fix:** the underlying conflation - treating a
+category-level band as if it were a specific programme's cutoff - is a
+reasoning error, not a missing-data error. Widening the regex catches
+more phrasings of the SYMPTOM (naming an unverified institution+programme
+pair); it does not teach the model not to make the inference in the first
+place. Rule 5f is a prompt-level attempt at that, with the same honest
+limitation already stated for every other prompt rule in this document: a
+small local model's compliance with it is probabilistic, not guaranteed,
+which is exactly why the regex fix (point 1) exists as a backstop
+independent of whether rule 5f actually works.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

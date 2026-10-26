@@ -304,6 +304,45 @@ def test_institutions_lookup_carries_real_list_even_when_model_narration_invents
     assert "KNUST" not in result["institutions_lookup"]["institutions_example"]
 
 
+def test_category_level_programme_inference_flagged_despite_being_numerically_lucky():
+    """Regression test for Failure 17 (docs/evaluation.md): a live model,
+    asked "can i do law", reasoned "the Humanities category is eligible,
+    so law (a programme under it) must be reachable too" and named real
+    institutions (University of Ghana, UCC, UEW, UDS, AAMUSTED) without
+    ever calling lookup_institution_programmes. The answer happened to be
+    numerically correct for that one student (Law's real cutoff at UG and
+    KNUST is 6, matching their aggregate exactly) - but the reasoning
+    conflated a broad category band with a specific programme's much
+    stricter real cutoff, which would have been WRONG for a student with
+    a worse aggregate still inside the category's own band. This also
+    exposed a real gap in the Failure-14 guard's keyword regex, which
+    matched "programme in X" but not the actual live phrasing "law
+    programmes" / "a law programme" - fixed by widening the regex to
+    match the bare words "programme(s)"/"course(s)"/"degree" too.
+    """
+    fake = FakeChat(
+        [
+            # No tool call at all - answers straight from category-level
+            # inference, exactly like the live failure.
+            _assistant(
+                content=(
+                    "Yes, you are eligible for the General Humanities / "
+                    "Social Sciences / Education category, which includes "
+                    "law programmes. You are eligible to pursue a law "
+                    "programme at institutions such as the University of "
+                    "Ghana, UCC, UEW, UDS, or AAMUSTED."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-law-inference", "can i do law", chat_fn=fake)
+
+    flagged = result["unverified_institution_claims"]
+    for name in ("University of Ghana", "UCC", "UEW", "UDS", "AAMUSTED"):
+        assert name in flagged, f"{name} should be flagged as an unverified programme claim"
+
+
 def test_institution_programmes_carries_real_rows_even_when_model_narration_invents_others():
     """Regression test for Failure 13 (docs/evaluation.md): a live model
     call, asked about programmes at named institutions, invented

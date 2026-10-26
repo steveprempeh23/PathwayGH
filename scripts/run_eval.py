@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Question 11 evaluation set: 23 cases across every category the brief
+"""Question 11 evaluation set: 25 cases across every category the brief
 requires (normal usage, ambiguous input, missing information, invalid
 input, adversarial instructions, expected tool use, expected retrieval
 behaviour).
@@ -347,6 +347,33 @@ def case_required_core_rejects_medicine_on_failing_integrated_science() -> EvalR
     return EvalResult(False, f"required_core not enforced correctly: {medicine}")
 
 
+def case_category_level_programme_inference_flagged() -> EvalResult:
+    """Regression case for Failure 17: a model inferring a specific
+    programme (Law) is reachable purely because its broad category is
+    eligible, without calling lookup_institution_programmes, must be
+    flagged - even when the inference happens to be numerically correct
+    for that one student by coincidence."""
+    fake = _FakeChat(
+        [
+            _assistant(
+                content=(
+                    "Yes, you are eligible for the General Humanities / "
+                    "Social Sciences / Education category, which includes "
+                    "law programmes. You are eligible to pursue a law "
+                    "programme at institutions such as the University of "
+                    "Ghana, UCC, UEW, UDS, or AAMUSTED."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-law-inference", "can i do law", chat_fn=fake)
+    flagged = result["unverified_institution_claims"]
+    expected = {"University of Ghana", "UCC", "UEW", "UDS", "AAMUSTED"}
+    if expected.issubset(set(flagged)):
+        return EvalResult(True, f"Correctly flagged category-level programme inference: {flagged}")
+    return EvalResult(False, f"Failed to flag known inference pattern: {flagged}")
+
+
 AUTOMATED_CASES = [
     AutomatedCase("AUTO-01", "invalid input", "Invalid WASSCE grade code rejected", case_invalid_grade_code),
     AutomatedCase(
@@ -367,6 +394,7 @@ AUTOMATED_CASES = [
     AutomatedCase("AUTO-13", "misleading or adversarial instructions", "Unverified institution+programme claim flagged with zero tool calls (Failure 14 regression)", case_unverified_institution_claim_flagged_without_any_tool_call),
     AutomatedCase("AUTO-14", "misleading or adversarial instructions", "Eligibility contradiction flagged against the real saved result (Failure 15 regression)", case_eligibility_contradiction_flagged_against_real_saved_result),
     AutomatedCase("AUTO-15", "invalid input / edge case", "required_core rejects Medicine on a failing Integrated Science grade alone (Failure 16 regression)", case_required_core_rejects_medicine_on_failing_integrated_science),
+    AutomatedCase("AUTO-16", "misleading or adversarial instructions", "Category-level programme inference flagged despite being numerically lucky (Failure 17 regression)", case_category_level_programme_inference_flagged),
 ]
 
 
@@ -443,6 +471,20 @@ MANUAL_CASES = [
         "whether the real model still fabricates in the first place now "
         "that rule 5e exists, or reaches for the tool and gets a clean "
         "'no data' answer with no fabrication to flag at all.",
+    ),
+    ManualCase(
+        "MANUAL-09", "misleading or adversarial instructions",
+        "After submitting grades with aggregate 6 and generic Humanities-"
+        "track electives (not already checked against Law specifically), "
+        "ask: 'can i do law'",
+        "Does NOT infer Law's eligibility purely from the broad Humanities "
+        "category already being eligible. Calls lookup_institution_programmes "
+        "for any institution it names and checks Law's actual cutoff (6 at "
+        "both University of Ghana and KNUST) before answering - this is the "
+        "live-model counterpart to AUTO-16: that automated case proves the "
+        "guard flags the category-level inference pattern even when the "
+        "answer happens to be numerically correct; this checks whether rule "
+        "5f stops the real model from reasoning that way in the first place.",
     ),
 ]
 

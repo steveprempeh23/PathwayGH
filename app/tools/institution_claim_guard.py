@@ -36,10 +36,18 @@ import re
 from app.tools.programme_lookup import all_known_institution_names
 
 _DEGREE_KEYWORD_RE = re.compile(
-    r"\b(HND|Bachelor|BSc|BA|B\.A\.|B\.Sc\.|B\.Eng|BEng|Diploma|Doctor of|"
-    r"MBChB|Master|M\.Sc\.|MSc|programme in|course in|degree in)\b",
+    r"\b(HND|Bachelor|BSc|BA|B\.A\.|B\.Sc\.|B\.Eng|BEng|LLB|Diploma|Doctor of|"
+    r"MBChB|Master|M\.Sc\.|MSc|programmes?|courses?|degree)\b",
     re.IGNORECASE,
 )
+# Widened after Failure 17 (docs/evaluation.md): the original pattern only
+# matched "programme in"/"course in" as fixed phrases, so a reply saying
+# "law programmes" or "a law programme" - the actual live phrasing that
+# slipped through - matched nothing at all. Matching the bare words
+# "programme(s)"/"course(s)"/"degree" risks more false positives (an
+# extra warning banner on an ordinary sentence that happens to use the
+# word "programme"), which this project has already decided, repeatedly,
+# is the cheaper mistake compared to a real fabrication going unflagged.
 
 
 def detect_unverified_institution_claims(reply_text: str, verified_institutions: set[str]) -> list[str]:
