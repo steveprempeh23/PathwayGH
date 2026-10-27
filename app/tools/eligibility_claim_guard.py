@@ -55,7 +55,21 @@ def detect_eligibility_contradictions(reply_text: str, session_id: str) -> list[
         start = reply_text.find(category)
         if start == -1:
             continue
-        window = reply_text[max(0, start - _WINDOW_BEFORE): start + len(category) + _WINDOW_AFTER]
+        cat_end = start + len(category)
+
+        # Cap the forward window at the end of the sentence that actually
+        # names this category. Without this, a verdict belonging to a
+        # DIFFERENT category mentioned later in the same reply (e.g. "You
+        # are eligible for X ... However, you are NOT eligible for Y") can
+        # bleed into X's window and produce a false contradiction - see the
+        # false-positive this caused for "Private University Entry" when a
+        # later sentence about "Engineering / Pharmacy / Actuarial Science"
+        # fell inside the old fixed 160-char window.
+        forward_slice = reply_text[cat_end: cat_end + _WINDOW_AFTER]
+        sentence_end = re.search(r"[.!?]", forward_slice)
+        after_end = cat_end + (sentence_end.end() if sentence_end else len(forward_slice))
+
+        window = reply_text[max(0, start - _WINDOW_BEFORE): after_end]
 
         if _NOT_ELIGIBLE_RE.search(window):
             claimed_eligible = False
