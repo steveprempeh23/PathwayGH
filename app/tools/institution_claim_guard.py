@@ -56,12 +56,25 @@ _DEGREE_KEYWORD_RE = re.compile(
 # check...") still matched the keyword regex and got an institution
 # flagged as if a confident, unverified claim had been made, when none
 # was. These phrases mean the model is deferring, not asserting.
+#
+# "i don'?t have" only matched the contraction - see docs/evaluation.md
+# Failure 19: a live reply said "I do not have per-programme data for
+# the University for Development Studies (UDS) yet", the exact honest,
+# correct deferral this regex exists to recognize, and it was STILL
+# flagged because "do not" is not "don't"/"dont". Added as its own
+# alternative rather than widening "don'?t" to also swallow "do not",
+# which would require restructuring the capture group.
 _DEFERRAL_RE = re.compile(
     r"would need to check|would you like me to check|"
     r"i don'?t have (that|per-programme|specific)|"
+    r"i do not have (that|per-programme|specific)|"
     r"no data (on file|yet)|can'?t confirm|not able to confirm",
     re.IGNORECASE,
 )
+
+
+def _normalized(names) -> set[str]:
+    return {n.strip().lower() for n in names}
 
 
 def detect_unverified_institution_claims(reply_text: str, verified_institutions: set[str]) -> list[str]:
@@ -86,15 +99,26 @@ def detect_unverified_institution_claims(reply_text: str, verified_institutions:
     was a single, uniformly cautious reply - not yet observed to combine
     a real claim and a deferral in one message - and is written down here
     as a known limitation rather than silently accepted.
+
+    verified_institutions is matched case/whitespace-insensitively against
+    all_known_institution_names() - see docs/evaluation.md Failure 20: the
+    lookup_institution_programmes tool's `institution` argument is
+    whatever free-text string the model typed (there's no enforced enum -
+    see its tool schema), so institution_programmes_result.institution can
+    be "university of ghana" while all_known_institution_names() has
+    "University of Ghana". An exact-string set membership check treats
+    those as different institutions, so a genuinely-verified lookup this
+    turn (has_data_for_institution=True) still got flagged as unverified.
     """
     if not reply_text or not _DEGREE_KEYWORD_RE.search(reply_text):
         return []
     if _DEFERRAL_RE.search(reply_text):
         return []
 
+    verified_normalized = _normalized(verified_institutions)
     flagged = []
     for institution in all_known_institution_names():
-        if institution in verified_institutions:
+        if institution.strip().lower() in verified_normalized:
             continue
         if institution in reply_text:
             flagged.append(institution)

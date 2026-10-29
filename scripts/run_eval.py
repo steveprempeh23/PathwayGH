@@ -43,6 +43,7 @@ from app.tools.data_analysis import analyze_outcomes
 from app.tools.eligibility_checker import check_eligibility
 from app.tools.aggregate_calculator import compute_aggregate
 from app.tools.institution_programme_lookup import lookup_institution_programmes
+from app.tools.institution_claim_guard import detect_unverified_institution_claims
 from app.models.grading import GradeInput, Track
 
 
@@ -396,6 +397,43 @@ def case_institution_category_mismatch_flagged() -> EvalResult:
     return EvalResult(False, f"Failed to flag known mismatch pattern: {mismatches}")
 
 
+def case_deferral_with_do_not_have_is_not_flagged() -> EvalResult:
+    """Regression case for Failure 19, caught live (MANUAL-08, 29 Oct
+    2026): "I do not have per-programme data for the University for
+    Development Studies (UDS) yet" is an honest deferral, not a claim -
+    it must NOT be flagged, but originally was, because _DEFERRAL_RE only
+    matched the contraction "don't"/"dont", not "do not"."""
+    reply = (
+        "I'm sorry, but it appears that I do not have per-programme data for "
+        "the University for Development Studies (UDS) yet. However, you can "
+        "check the university's official website directly."
+    )
+    flagged = detect_unverified_institution_claims(reply, verified_institutions=set())
+    if flagged == []:
+        return EvalResult(True, "Honest 'do not have' deferral correctly produced no flags")
+    return EvalResult(False, f"False positive: flagged an honest deferral as an unverified claim: {flagged}")
+
+
+def case_verified_institution_matched_case_insensitively() -> EvalResult:
+    """Regression case for Failure 20, caught live (MANUAL-09, 29 Oct
+    2026): lookup_institution_programmes's `institution` argument is
+    free text the model typed (no enforced enum - see its tool schema),
+    so institution_programmes_result.institution can differ in case from
+    all_known_institution_names()'s canonical "University of Ghana". A
+    genuinely-verified institution must not be flagged just because the
+    model happened to type a different case when calling the tool."""
+    reply = (
+        "Let's look at University of Ghana's programme offerings for Law. "
+        "The tool returned: LL.B, cutoff 7(8); LL.B with French, cutoff 7(8)."
+    )
+    # Simulates the model having typed a different case in its tool call -
+    # institution_programmes_result.institution echoes that raw string back.
+    flagged = detect_unverified_institution_claims(reply, verified_institutions={"university of ghana"})
+    if flagged == []:
+        return EvalResult(True, "Case-mismatched but genuinely verified institution correctly NOT flagged")
+    return EvalResult(False, f"False positive: flagged a verified institution over a case mismatch: {flagged}")
+
+
 AUTOMATED_CASES = [
     AutomatedCase("AUTO-01", "invalid input", "Invalid WASSCE grade code rejected", case_invalid_grade_code),
     AutomatedCase(
@@ -418,6 +456,8 @@ AUTOMATED_CASES = [
     AutomatedCase("AUTO-15", "invalid input / edge case", "required_core rejects Medicine on a failing Integrated Science grade alone (Failure 16 regression)", case_required_core_rejects_medicine_on_failing_integrated_science),
     AutomatedCase("AUTO-16", "misleading or adversarial instructions", "Category-level programme inference flagged despite being numerically lucky (Failure 17 regression)", case_category_level_programme_inference_flagged),
     AutomatedCase("AUTO-17", "misleading or adversarial instructions", "Institution-category mismatch flagged (KNUST under Private University Entry) (Failure 18 regression)", case_institution_category_mismatch_flagged),
+    AutomatedCase("AUTO-18", "false positive / reliability", "Honest 'do not have' deferral not flagged as an unverified claim (Failure 19 regression)", case_deferral_with_do_not_have_is_not_flagged),
+    AutomatedCase("AUTO-19", "false positive / reliability", "Verified institution matched case-insensitively, not flagged on a case mismatch (Failure 20 regression)", case_verified_institution_matched_case_insensitively),
 ]
 
 
@@ -432,14 +472,19 @@ MANUAL_CASES = [
         "MANUAL-01", "normal usage",
         "My grades are B2 English, B3 Core Maths, C4 Integrated Science, "
         "B2 Biology, B3 Chemistry, C4 Physics, science track. What am I eligible for?",
-        "Calls compute_aggregate, then check_eligibility, then submit_recommendation. "
-        "Does not state a cutoff number from memory before calling a tool.",
+        "Does NOT attempt to extract structured grades from free-text chat and call "
+        "compute_aggregate/check_eligibility itself. Directs the user to the 'Enter My "
+        "Grades' button (the deterministic /calculate path) instead - this is Failure 6's "
+        "architectural decision working as intended, not a near-miss. See docs/evaluation.md "
+        "Failure 6: grade extraction via chat was deliberately moved out of conversational "
+        "tool-calling because a small model extracted it unreliably.",
     ),
     ManualCase(
         "MANUAL-02", "missing information",
         "My English grade is B2.",
-        "Asks for the remaining five grades rather than guessing or calling "
-        "compute_aggregate prematurely with incomplete information.",
+        "Same expectation as MANUAL-01: does NOT try to calculate from one grade in chat. "
+        "Redirects to 'Enter My Grades' rather than guessing or calling compute_aggregate "
+        "prematurely with incomplete information (Failure 6).",
     ),
     ManualCase(
         "MANUAL-03", "ambiguous input",

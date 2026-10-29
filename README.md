@@ -318,10 +318,10 @@ belong in code, not LLM judgment.
 
 ## Evaluation Approach
 
-See [docs/evaluation.md](docs/evaluation.md) for the full 15-case evaluation
-set (9 automated, 6 requiring a live Ollama run + human judgment) and the
-writeup of **sixteen** real issues caught during development and live use.
-Most are LLM behavior failures (the small local model fabricating category
+See [docs/evaluation.md](docs/evaluation.md) for the full 26-case evaluation
+set (17 automated, 9 requiring a live Ollama run + human judgment) and the
+writeup of **eighteen** real issues caught during development and live use.
+Most are LLM behavior failures (the local model fabricating category
 names, institutions, or entire programme titles with no data behind them;
 contradicting an already-computed result; getting stuck in loops; faking a
 tool call as plain-text JSON instead of a real one); two (Failures 11 and
@@ -330,21 +330,35 @@ fact-checking a domain rule against external sources rather than by
 watching the model misbehave - a reminder that "deterministic" isn't the
 same guarantee as "correct." Each entry states plainly what the fix does
 and does NOT cover; several (Failures 9, 14, 15) explicitly note that no
-code can force a small model's free-text reply to only say what a tool
+code can force a model's free-text reply to only say what a tool
 returned, only that the real answer is now surfaced alongside it
 regardless.
 
-**Known gap in the eval set itself:** the 15 cases above predate Failures
-11-16. None of the 9 automated cases currently exercise the aggregate
-boundary bug, institution/programme fabrication, the eligibility
-contradiction, or the Integrated-Science/Social-Studies fix - the single
-highest-value next addition to this evaluation set would be adversarial
-cases for each.
+The original 9-automated/6-manual set predated Failures 11-18, so it never
+actually exercised this project's most recently fixed issues — the
+aggregate boundary bug, institution/programme fabrication, the eligibility
+contradiction, or the Integrated-Science/Social-Studies fix. AUTO-10
+through AUTO-17 and MANUAL-07/08/09 close that gap: each new automated
+case reproduces the exact live failure verbatim and asserts the fix
+catches it, and all 17 automated cases currently pass.
 
-Run the automated half:
+Run the automated half (no live Ollama needed):
 ```
 python scripts/run_eval.py
 ```
+
+Run the manual half (needs a live Ollama instance with the models from
+"Configuration" above already pulled):
+```
+python scripts/run_manual_eval.py
+```
+This sends each of the 9 MANUAL cases through the real orchestrator against
+whatever model Ollama is currently serving, prints the model's actual
+reply next to the expected behavior, asks you to judge pass/fail by hand,
+and writes the verdict straight into the table in `docs/evaluation.md` —
+no hand-editing the table required. Run it once before the live
+presentation/demo so the table reflects the model actually being
+demonstrated, not a placeholder.
 
 ## Known Limitations
 
@@ -410,13 +424,13 @@ step-by-step guide to adding programme categories, RAG source content, and
 real per-institution programme data.
 
 **Highest-value next steps, in roughly descending order of impact:**
-- Add adversarial eval cases for Failures 11-16 to `scripts/run_eval.py` -
-  the current 15-case set predates all of them.
-- Run `scripts/run_eval.py`'s manual cases live against the actual
-  `llama3.1:8b` to measure whether the Failure 12/13/15 prompt-rule
-  changes (5b-5e) actually reduced the real model's error rate, rather
+- Run `scripts/run_manual_eval.py`'s 9 MANUAL cases live against the actual
+  `llama3.1:8b` to measure whether the Failure 12/13/15/17 prompt-rule
+  changes (5b-5f) actually reduced the real model's error rate, rather
   than relying solely on `FakeChat`-based regression tests that only
-  prove the guards catch what's already been observed.
+  prove the guards catch what's already been observed. (The automated
+  cases for all of these already exist as AUTO-10 through AUTO-17; what's
+  still missing is the live-model half, not the test cases themselves.)
 - Stress-test `institution_claim_guard`/`eligibility_claim_guard` against
   paraphrased model wording ("qualify"/"meets the requirement" instead of
   "eligible"), not just the exact phrasing already seen fail live.
