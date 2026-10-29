@@ -58,6 +58,14 @@ def lookup_institutions(programme_category: str) -> InstitutionsLookup:
     )
 
 
+def category_institutions_map() -> dict[str, list[str]]:
+    """Maps each category name to its real institutions_example list -
+    used by app/tools/institution_category_mismatch_guard.py (Failure 18)
+    to check whether an institution the model names for a category
+    actually belongs to it."""
+    return {prog["category"]: prog.get("institutions_example", []) for prog in _load_programmes()}
+
+
 def all_known_institution_names() -> set[str]:
     """Every institution name that appears in any category's
     institutions_example list, across the whole file. Used by

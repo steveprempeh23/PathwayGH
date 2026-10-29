@@ -613,6 +613,38 @@ function renderEligibilityContradictionWarning(contradictions) {
   log.scrollTop = log.scrollHeight;
 }
 
+function renderInstitutionCategoryMismatchWarning(mismatches) {
+  // Correction, distinct from both the eligibility-contradiction and
+  // unverified-claims warnings - this is "this institution was never in
+  // this category's real list at all", not a wrong verdict or an
+  // unverified programme. See docs/evaluation.md Failure 18.
+  const rows = mismatches
+    .map(
+      (m) => `
+      <li>
+        <strong>${escapeHtml(m.institution)}</strong> was named under
+        "${escapeHtml(m.category)}", but is not actually in that
+        category's real institution list.
+      </li>`
+    )
+    .join("");
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.style.border = "2px solid #c0392b";
+  card.style.background = "rgba(192,57,18,0.12)";
+  card.innerHTML = `
+    <h3 style="color:#c0392b;">⚠ Correction: an institution was misassigned above</h3>
+    <ul style="margin:4px 0 0 18px;font-size:12px;">${rows}</ul>
+    <div style="margin-top:6px;color:var(--muted);font-size:11px;">
+      Use the "list_institutions" result or the calculation card's own
+      example institutions for this category instead.
+    </div>
+  `;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
 function renderUnverifiedClaimsWarning(institutions) {
   // Prominent, distinct styling from the other (reassuring) cards on
   // purpose - this is a warning, not an info card. See
@@ -883,6 +915,7 @@ form.addEventListener("submit", async (e) => {
     let institutionProgrammes = null;
     let unverifiedInstitutionClaims = [];
     let eligibilityContradictions = [];
+    let institutionCategoryMismatches = [];
 
     while (true) {
       const { done, value } = await reader.read();
@@ -918,6 +951,7 @@ form.addEventListener("submit", async (e) => {
           institutionProgrammes = event.institution_programmes;
           unverifiedInstitutionClaims = event.unverified_institution_claims || [];
           eligibilityContradictions = event.eligibility_contradictions || [];
+          institutionCategoryMismatches = event.institution_category_mismatches || [];
         }
       }
     }
@@ -931,6 +965,13 @@ form.addEventListener("submit", async (e) => {
       // to compare against, so it is shown first and worded as a
       // correction, not a caution.
       renderEligibilityContradictionWarning(eligibilityContradictions);
+    }
+    if (institutionCategoryMismatches.length > 0) {
+      // Deterministic safety net for Failure 18 (docs/evaluation.md): a
+      // live run named a real institution (KNUST) under a category it
+      // has never actually been in ("Private University Entry in
+      // KNUST"). A third, distinct correction alongside the two above.
+      renderInstitutionCategoryMismatchWarning(institutionCategoryMismatches);
     }
     if (unverifiedInstitutionClaims.length > 0) {
       // Deterministic safety net for Failure 14 (docs/evaluation.md): a

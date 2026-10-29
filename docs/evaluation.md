@@ -985,6 +985,107 @@ small local model's compliance with it is probabilistic, not guaranteed,
 which is exactly why the regex fix (point 1) exists as a backstop
 independent of whether rule 5f actually works.
 
+### Failure 18: a false contradiction, a false fabrication warning, and a genuinely new mismatch, all found while checking Failure 17's own fix (observed live, Oct 2026)
+
+**What happened, in three parts:**
+
+1. A student asked "What am I eligible for in KNUST." The model answered:
+   "you are eligible for Private University Entry in KNUST, and Open
+   Public-University Entry in KNUST. However, you are NOT eligible for
+   Engineering / Pharmacy / Actuarial Science in KNUST." KNUST has never
+   been in "Private University Entry"'s real `institutions_example` list
+   - it is a public university. The eligibility-contradiction guard
+   (Failure 15) then fired, but on the WRONG category: it reported
+   "Private University Entry: the reply said 'not eligible', but your
+   actual saved result says 'eligible'" - except the model never said
+   "not eligible" for Private University Entry at all. It said "eligible"
+   for it, correctly. The guard's fixed-character window (60 chars
+   before, 160 after a category's mention) read far enough past "Private
+   University Entry" to reach the NEXT sentence's real "NOT eligible,"
+   which was actually about Engineering, and misattributed it.
+2. Asked a follow-up ("what does this mean"), the model gave an
+   appropriately cautious reply: it would "need to check the
+   programme-specific data" and asked whether to check Law at KNUST. The
+   institution-claim guard (Failure 14, widened in Failure 17 to match
+   bare "programme(s)") flagged KNUST anyway - a direct, confirmed side
+   effect of that widening: a reply making NO claim at all, explicitly
+   deferring instead, still matched the keyword and got flagged as if it
+   had fabricated something.
+3. Checking what SHOULD have been flagged in the first reply - KNUST
+   named under a category it was never in - revealed that **no existing
+   guard checks this at all**. Failure 14's guard checks
+   institution+programme pairs against `lookup_institution_programmes`.
+   Failure 15's guard checks eligibility verdicts against the saved
+   result. Neither checks whether a named institution actually belongs to
+   a named category per `programmes.json`'s own `institutions_example` -
+   a third, distinct kind of claim, and genuinely new.
+
+**Why this is worth its own entry rather than three separate ones:** all
+three were found in the course of checking one transcript, and the first
+two are specifically about this project's own safety nets producing
+*wrong* warnings, not missing real ones - the opposite failure mode from
+everything documented so far. A false correction is its own kind of
+damage: it teaches a reader to distrust the warning banners generally,
+which undermines every genuine catch this document already describes.
+
+**Fix for part 1 (false contradiction):**
+`app/tools/eligibility_claim_guard.py`'s window-based matching was
+replaced with sentence-scoped matching: reply text is split on
+sentence-ending punctuation AND newlines (a bulleted, one-category-per-
+line reply has no periods to split on at all), and verdict language is
+only looked for in the SAME sentence/line as a category's mention, never
+a fixed character range that can bleed into the next one. Re-tested
+against the exact live reply: now returns `[]` (no false contradiction),
+while the original Failure 15 case (a single-sentence contradiction) is
+still caught correctly - confirmed directly, not assumed.
+
+**Fix for part 2 (false fabrication warning):**
+`app/tools/institution_claim_guard.py` gained a `_DEFERRAL_RE` check: if
+the reply contains explicit deferral language ("would need to check,"
+"would you like me to check," "I don't have that/specific/per-programme
+data," "no data on file/yet," "can't/not able to confirm"), the guard
+returns `[]` for the whole reply rather than flagging anything. Stated as
+a limitation, not hidden: this is a whole-reply exclusion, so a message
+that genuinely defers about one institution while fabricating about a
+*different* one in the same reply would currently go unflagged for both
+- accepted for now because the live case was a single, uniformly
+cautious reply, and written down here rather than silently assumed away.
+
+**Fix for part 3 (the genuinely new mismatch) - a new guard:**
+`app/tools/institution_category_mismatch_guard.py`, using the same
+sentence-scoped approach as the fix above: for each sentence, every known
+institution mentioned is checked against every category also mentioned in
+that sentence, using `programme_lookup.category_institutions_map()` (a
+new helper exposing `programmes.json`'s own category -> real institutions
+mapping). Any institution named under a category it is not actually in
+gets flagged as `{"institution": ..., "category": ...}`. Threaded through
+`orchestrator.py` as a third always-on guard alongside the other two,
+surfaced as `institution_category_mismatches` on `handle_turn`/
+`handle_turn_stream`, added to `ChatResponse`, rendered as its own red
+correction card in `static/index.html`.
+
+Verified with three new tests in `tests/test_orchestrator.py`:
+`test_eligibility_contradiction_not_falsely_flagged_across_sentence_boundary`
+(part 1 - reproduces the exact live reply, confirms no false
+contradiction), `test_unverified_claims_not_falsely_flagged_when_model_explicitly_defers`
+(part 2 - reproduces the exact live deferral reply, confirms no false
+flag), and `test_institution_category_mismatch_flagged_for_knust_under_private_university_entry`
+(part 3 - confirms KNUST is flagged for the wrong category and NOT
+flagged for the category it actually belongs to). New eval case
+`AUTO-17` added to `scripts/run_eval.py` for part 3.
+
+**What this doesn't fix:** the sentence-scoping fix for part 1 assumes a
+verdict for a category is stated in the same sentence as the category's
+name - a reply structured as "Here are your results: Category A, Category
+B, Category C. All three: eligible." (verdict in a trailing sentence
+covering several categories at once) would not be caught by either the
+old or the new approach, and remains a known gap. The deferral exclusion
+for part 2 has the whole-reply limitation already stated above. The new
+guard for part 3 only checks institutions and categories already known to
+`programmes.json` - an institution or category name outside that set
+(including any outright invented one) is a job for Failure 14's guard,
+not this one.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

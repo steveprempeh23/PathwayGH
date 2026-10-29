@@ -304,6 +304,87 @@ def test_institutions_lookup_carries_real_list_even_when_model_narration_invents
     assert "KNUST" not in result["institutions_lookup"]["institutions_example"]
 
 
+def test_eligibility_contradiction_not_falsely_flagged_across_sentence_boundary():
+    """Regression test for Failure 18 (docs/evaluation.md): a live reply
+    correctly said "eligible" for Private University Entry in one
+    sentence, then "NOT eligible" for a different category (Engineering)
+    in the NEXT sentence. The old fixed-character-window guard read far
+    enough past "Private University Entry" to pick up the Engineering
+    sentence's "NOT eligible" and misattributed it, producing a false
+    contradiction banner for a category the model got right.
+    """
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="technical",
+        electives={"Applied Electricity": "A1", "Woodwork": "A1", "Metalwork": "A1"},
+    )
+    session_store.set_last_calculation("session-sentence-scope", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "Based on the data, you are eligible for Private University Entry "
+                    "in KNUST, and Open Public-University Entry in KNUST. However, you "
+                    "are NOT eligible for Engineering / Pharmacy / Actuarial Science in "
+                    "KNUST, as your aggregate does not meet the minimum requirement for "
+                    "this category."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("session-sentence-scope", "what am I eligible for in KNUST", chat_fn=fake)
+    assert result["eligibility_contradictions"] == []
+
+
+def test_unverified_claims_not_falsely_flagged_when_model_explicitly_defers():
+    """Regression test for Failure 18: a reply that explicitly declines to
+    make a programme claim and asks a clarifying question ("I would need
+    to check the programme-specific data - would you like me to check...")
+    must NOT be flagged as if it made an unverified claim - it made none.
+    """
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "It means that I have confirmed your eligibility for specific "
+                    "categories in KNUST. You are eligible for Private University "
+                    "Entry and Open Public-University Entry, but not for Engineering / "
+                    "Pharmacy / Actuarial Science. To confirm specific programmes, I "
+                    "would need to check the programme-specific data. Would you like me "
+                    "to check for a specific programme in KNUST, like Law?"
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("session-deferral", "what does this mean", chat_fn=fake)
+    assert result["unverified_institution_claims"] == []
+
+
+def test_institution_category_mismatch_flagged_for_knust_under_private_university_entry():
+    """Regression test for Failure 18: KNUST (public) was named under
+    "Private University Entry" - a category it has never actually been
+    in. Neither of the two existing guards catches this; it needed its
+    own, third kind of check."""
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "Based on the data, you are eligible for Private University Entry "
+                    "in KNUST, and Open Public-University Entry in KNUST."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("session-mismatch", "what am I eligible for in KNUST", chat_fn=fake)
+    mismatches = result["institution_category_mismatches"]
+    assert {"institution": "KNUST", "category": "Private University Entry"} in mismatches
+    # KNUST correctly being in Open Public-University Entry must NOT be flagged.
+    assert not any(m["category"] == "Open Public-University Entry (general eligibility floor)" for m in mismatches)
+
+
 def test_category_level_programme_inference_flagged_despite_being_numerically_lucky():
     """Regression test for Failure 17 (docs/evaluation.md): a live model,
     asked "can i do law", reasoned "the Humanities category is eligible,
@@ -541,49 +622,6 @@ def test_eligibility_contradiction_empty_when_no_calculation_saved_yet():
     against, so no contradiction can be (or should be) claimed."""
     fake = FakeChat([_assistant(content="You are eligible for Medicine / Dentistry.")])
     result = orchestrator.handle_turn("session-no-calc", "medicine?", chat_fn=fake)
-    assert result["eligibility_contradictions"] == []
-
-
-def test_eligibility_contradiction_not_flagged_when_window_spans_two_categories():
-    """Regression test for a false-positive contradiction found while
-    reviewing a live transcript: the model named two categories close
-    together in one reply - "eligible for Private University Entry ...
-    However, you are NOT eligible for Engineering / Pharmacy / Actuarial
-    Science" - and the guard's old fixed 160-char forward window let
-    Engineering's "NOT eligible" bleed into Private University Entry's
-    window, flagging a contradiction that never happened (the reply was
-    correct for both categories). The fix caps the forward window at the
-    end of the sentence that actually names each category.
-    """
-    from app.tools.eligibility_checker import check_eligibility
-
-    elig = check_eligibility(
-        aggregate=6,
-        track="technical",
-        electives={"Applied Electricity": "A1", "Woodwork": "A1", "Metalwork": "A1"},
-    )
-    session_store.set_last_calculation(
-        "session-window-bleed", {"aggregate": 6}, elig.model_dump()
-    )
-
-    fake = FakeChat(
-        [
-            _assistant(
-                content=(
-                    "Based on the data, you are eligible for Private University "
-                    "Entry in KNUST, and Open Public-University Entry in KNUST. "
-                    "However, you are NOT eligible for Engineering / Pharmacy / "
-                    "Actuarial Science in KNUST, as your aggregate does not meet "
-                    "the minimum requirement for this category."
-                )
-            ),
-        ]
-    )
-
-    result = orchestrator.handle_turn(
-        "session-window-bleed", "what am I eligible for in knust", chat_fn=fake
-    )
-
     assert result["eligibility_contradictions"] == []
 
 

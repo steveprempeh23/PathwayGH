@@ -76,6 +76,14 @@ class ChatResponse(BaseModel):
     merely unverified - a live run showed the model telling a student they
     WERE eligible for a category the real calculation had marked
     ineligible."""
+    institution_category_mismatches: list[dict] = []
+    """Deterministic, code-level flag for Failure 18 (docs/evaluation.md):
+    an institution named in `reply` alongside a category it does NOT
+    actually belong to per programmes.json's own institutions_example
+    (e.g. "Private University Entry in KNUST" - KNUST is public and has
+    never been in that category's real list). A third, distinct kind of
+    mismatch from eligibility_contradictions (wrong verdict) and
+    unverified_institution_claims (unverified programme) above."""
     unverified_institution_claims: list[str] = []
     """Deterministic, code-level flag for Failure 14 (docs/evaluation.md):
     institutions named in `reply` alongside degree-sounding language that

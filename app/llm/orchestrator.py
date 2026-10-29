@@ -36,6 +36,7 @@ from app.tools.data_analysis import analyze_outcomes
 from app.tools.eligibility_checker import check_eligibility
 from app.tools.eligibility_claim_guard import detect_eligibility_contradictions
 from app.tools.eligibility_status_lookup import get_saved_eligibility
+from app.tools.institution_category_mismatch_guard import detect_institution_category_mismatches
 from app.tools.institution_claim_guard import detect_unverified_institution_claims
 from app.tools.institution_programme_lookup import lookup_institution_programmes
 from app.tools.programme_lookup import lookup_institutions
@@ -416,6 +417,9 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
         early_result["eligibility_contradictions"] = detect_eligibility_contradictions(
             early_result["reply"], session_id
         )
+        early_result["institution_category_mismatches"] = detect_institution_category_mismatches(
+            early_result["reply"]
+        )
         return early_result
 
     final_text = final_response["content"] or (
@@ -437,6 +441,12 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
     # truth (the real saved calculation for this session) to compare
     # against, so it can flag a definite WRONG, not just "unverified".
     eligibility_contradictions = detect_eligibility_contradictions(final_text, session_id)
+    # Deterministic safety net for Failure 18 (docs/evaluation.md): the
+    # model has been observed naming a real institution under a category
+    # it does not actually belong to (e.g. "Private University Entry in
+    # KNUST", a public university never in that category's real list).
+    # A third, distinct kind of mismatch from the two guards above.
+    institution_category_mismatches = detect_institution_category_mismatches(final_text)
 
     session_store.append_message(session_id, "user", user_message)
     session_store.append_message(session_id, "assistant", final_text)
@@ -448,6 +458,7 @@ def handle_turn(session_id: str, user_message: str, chat_fn=ollama_client.chat) 
         "institution_programmes": institution_programmes,
         "unverified_institution_claims": unverified_institution_claims,
         "eligibility_contradictions": eligibility_contradictions,
+        "institution_category_mismatches": institution_category_mismatches,
         "recommendation": recommendation.model_dump() if recommendation else None,
         "calculation": calculation,
     }
@@ -517,6 +528,9 @@ def handle_turn_stream(
             "eligibility_contradictions": detect_eligibility_contradictions(
                 early_result["reply"], session_id
             ),
+            "institution_category_mismatches": detect_institution_category_mismatches(
+                early_result["reply"]
+            ),
         }
         return
 
@@ -543,6 +557,8 @@ def handle_turn_stream(
     )
     # Same Failure-15 safety net as handle_turn - see the comment there.
     eligibility_contradictions = detect_eligibility_contradictions(final_text, session_id)
+    # Same Failure-18 safety net as handle_turn - see the comment there.
+    institution_category_mismatches = detect_institution_category_mismatches(final_text)
 
     session_store.append_message(session_id, "user", user_message)
     session_store.append_message(session_id, "assistant", final_text)
@@ -556,4 +572,5 @@ def handle_turn_stream(
         "institution_programmes": institution_programmes,
         "unverified_institution_claims": unverified_institution_claims,
         "eligibility_contradictions": eligibility_contradictions,
+        "institution_category_mismatches": institution_category_mismatches,
     }

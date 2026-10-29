@@ -25,12 +25,14 @@ from app.core import session_store
 _ELIGIBLE_RE = re.compile(r"\beligible\b", re.IGNORECASE)
 _NOT_ELIGIBLE_RE = re.compile(r"\bnot\s+eligible\b|\bineligible\b|\bno\s+match\b", re.IGNORECASE)
 
-# How far past a category-name mention to look for the verdict language
-# naming it. Generous on purpose - a false positive here only adds an
-# extra correction banner, which is a far cheaper mistake than missing a
-# real contradiction.
-_WINDOW_BEFORE = 60
-_WINDOW_AFTER = 160
+# Splits on sentence-ending punctuation AND newlines (a model answering in
+# a bullet list, one category per line, rarely uses terminal punctuation
+# per line at all). See Failure 18 (docs/evaluation.md) for why this
+# matters: a fixed character window (the original approach) read far
+# enough past one category's mention to pick up the NEXT category's
+# verdict in the same paragraph, misattributing a correct "eligible" as
+# a false "contradiction".
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 
 
 def detect_eligibility_contradictions(reply_text: str, session_id: str) -> list[dict]:
@@ -38,7 +40,15 @@ def detect_eligibility_contradictions(reply_text: str, session_id: str) -> list[
     every category the reply names alongside an eligibility verdict that
     contradicts the real, saved result for this session. Returns []
     if no calculation has been saved yet, or if reply_text doesn't appear
-    to state a verdict for any known category."""
+    to state a verdict for any known category.
+
+    Verdict language is looked for only within the SAME sentence/line as
+    the category's mention, not a fixed character window spanning
+    multiple sentences - see Failure 18 for the live false positive this
+    fixes (a correct "eligible" for one category misread as "not
+    eligible" because a different category's real "not eligible" fell
+    inside the old window, in the very next sentence).
+    """
     if not reply_text:
         return []
 
@@ -50,33 +60,23 @@ def detect_eligibility_contradictions(reply_text: str, session_id: str) -> list[
         m["category"]: m["overall_eligible"] for m in saved["eligibility"]["matches"]
     }
 
+    sentences = _SENTENCE_SPLIT_RE.split(reply_text)
+
     contradictions = []
     for category, actual_eligible in actual_by_category.items():
-        start = reply_text.find(category)
-        if start == -1:
-            continue
-        cat_end = start + len(category)
+        claimed_eligible = None
+        for sentence in sentences:
+            if category not in sentence:
+                continue
+            if _NOT_ELIGIBLE_RE.search(sentence):
+                claimed_eligible = False
+            elif _ELIGIBLE_RE.search(sentence):
+                claimed_eligible = True
+            if claimed_eligible is not None:
+                break  # first sentence that states a verdict for this category wins
 
-        # Cap the forward window at the end of the sentence that actually
-        # names this category. Without this, a verdict belonging to a
-        # DIFFERENT category mentioned later in the same reply (e.g. "You
-        # are eligible for X ... However, you are NOT eligible for Y") can
-        # bleed into X's window and produce a false contradiction - see the
-        # false-positive this caused for "Private University Entry" when a
-        # later sentence about "Engineering / Pharmacy / Actuarial Science"
-        # fell inside the old fixed 160-char window.
-        forward_slice = reply_text[cat_end: cat_end + _WINDOW_AFTER]
-        sentence_end = re.search(r"[.!?]", forward_slice)
-        after_end = cat_end + (sentence_end.end() if sentence_end else len(forward_slice))
-
-        window = reply_text[max(0, start - _WINDOW_BEFORE): after_end]
-
-        if _NOT_ELIGIBLE_RE.search(window):
-            claimed_eligible = False
-        elif _ELIGIBLE_RE.search(window):
-            claimed_eligible = True
-        else:
-            continue  # category named, but no verdict language nearby
+        if claimed_eligible is None:
+            continue  # category named, but no verdict language in its own sentence
 
         if claimed_eligible != actual_eligible:
             contradictions.append({

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Question 11 evaluation set: 25 cases across every category the brief
+"""Question 11 evaluation set: 26 cases across every category the brief
 requires (normal usage, ambiguous input, missing information, invalid
 input, adversarial instructions, expected tool use, expected retrieval
 behaviour).
@@ -374,6 +374,28 @@ def case_category_level_programme_inference_flagged() -> EvalResult:
     return EvalResult(False, f"Failed to flag known inference pattern: {flagged}")
 
 
+def case_institution_category_mismatch_flagged() -> EvalResult:
+    """Regression case for Failure 18: KNUST (public) named under
+    "Private University Entry" - a category it has never actually been
+    in - must be flagged, while its correct membership in Open
+    Public-University Entry must NOT be."""
+    fake = _FakeChat(
+        [
+            _assistant(
+                content=(
+                    "Based on the data, you are eligible for Private University Entry "
+                    "in KNUST, and Open Public-University Entry in KNUST."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-mismatch", "what am I eligible for in KNUST", chat_fn=fake)
+    mismatches = result["institution_category_mismatches"]
+    if {"institution": "KNUST", "category": "Private University Entry"} in mismatches:
+        return EvalResult(True, f"Correctly flagged KNUST/Private University Entry mismatch: {mismatches}")
+    return EvalResult(False, f"Failed to flag known mismatch pattern: {mismatches}")
+
+
 AUTOMATED_CASES = [
     AutomatedCase("AUTO-01", "invalid input", "Invalid WASSCE grade code rejected", case_invalid_grade_code),
     AutomatedCase(
@@ -395,6 +417,7 @@ AUTOMATED_CASES = [
     AutomatedCase("AUTO-14", "misleading or adversarial instructions", "Eligibility contradiction flagged against the real saved result (Failure 15 regression)", case_eligibility_contradiction_flagged_against_real_saved_result),
     AutomatedCase("AUTO-15", "invalid input / edge case", "required_core rejects Medicine on a failing Integrated Science grade alone (Failure 16 regression)", case_required_core_rejects_medicine_on_failing_integrated_science),
     AutomatedCase("AUTO-16", "misleading or adversarial instructions", "Category-level programme inference flagged despite being numerically lucky (Failure 17 regression)", case_category_level_programme_inference_flagged),
+    AutomatedCase("AUTO-17", "misleading or adversarial instructions", "Institution-category mismatch flagged (KNUST under Private University Entry) (Failure 18 regression)", case_institution_category_mismatch_flagged),
 ]
 
 

@@ -49,6 +49,20 @@ _DEGREE_KEYWORD_RE = re.compile(
 # word "programme"), which this project has already decided, repeatedly,
 # is the cheaper mistake compared to a real fabrication going unflagged.
 
+# Exactly the false positive that widening above introduced - see
+# Failure 18 (docs/evaluation.md): a reply that explicitly declines to
+# make a programme claim and asks a clarifying question instead ("I
+# would need to check the programme-specific data - would you like me to
+# check...") still matched the keyword regex and got an institution
+# flagged as if a confident, unverified claim had been made, when none
+# was. These phrases mean the model is deferring, not asserting.
+_DEFERRAL_RE = re.compile(
+    r"would need to check|would you like me to check|"
+    r"i don'?t have (that|per-programme|specific)|"
+    r"no data (on file|yet)|can'?t confirm|not able to confirm",
+    re.IGNORECASE,
+)
+
 
 def detect_unverified_institution_claims(reply_text: str, verified_institutions: set[str]) -> list[str]:
     """Returns the subset of known institution names that appear in
@@ -61,9 +75,21 @@ def detect_unverified_institution_claims(reply_text: str, verified_institutions:
     not require the institution and the keyword to be adjacent. That is a
     deliberate choice: a false positive here only adds an extra warning
     banner, which is a far cheaper mistake than a false negative letting a
-    real fabrication through unflagged.
+    real fabrication through unflagged. The one exception is a reply that
+    explicitly defers rather than claims (see _DEFERRAL_RE above) - that
+    case returns [] entirely, even if an institution and a keyword both
+    appear elsewhere in the same reply. This is a whole-reply exclusion,
+    not a per-institution one: a reply that defers on one institution
+    while confidently fabricating about a different one in the same
+    message would currently go unflagged for BOTH. That trade-off is
+    accepted for now because the live case that motivated this exclusion
+    was a single, uniformly cautious reply - not yet observed to combine
+    a real claim and a deferral in one message - and is written down here
+    as a known limitation rather than silently accepted.
     """
     if not reply_text or not _DEGREE_KEYWORD_RE.search(reply_text):
+        return []
+    if _DEFERRAL_RE.search(reply_text):
         return []
 
     flagged = []
