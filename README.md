@@ -36,25 +36,31 @@ reader can verify themselves with a single command, not a claim taken on
 faith:
 
 1. **Deterministic correctness: 100% of automated evaluation cases pass.**
-   `python scripts/run_eval.py` runs 15 automated cases covering invalid
+   `python scripts/run_eval.py` runs 19 automated cases covering invalid
    input, model/tool/retrieval failure, malformed structured output, and
-   six regression cases for real bugs found during development (an
+   ten regression cases for real bugs found during development (an
    aggregate boundary error, a required-core-subject check that was
-   previously silently skipped, and others - see `docs/evaluation.md`
-   Failures 11-16). A student's calculated aggregate and eligibility
-   verdict are the two numbers this entire system exists to get right;
-   this criterion is "they are right, provably, every time," not "they
-   seem plausible."
-2. **Zero unflagged fabrication in a fixed adversarial batch.** Three of
-   the automated cases above (AUTO-13, AUTO-14, and the pre-existing
-   source-citation test in `tests/test_orchestrator.py`) reproduce the
-   exact wording of real fabrications a live model produced during
-   testing - inventing institutions, inventing degree programmes, and
-   contradicting an already-computed eligibility result - and assert the
+   previously silently skipped, two false positives in the fabrication
+   guards themselves, and others - see `docs/evaluation.md` Failures
+   11-20). A student's calculated aggregate and eligibility verdict are
+   the two numbers this entire system exists to get right; this criterion
+   is "they are right, provably, every time," not "they seem plausible."
+   Status as of the last run: **19/19 pass.**
+2. **Zero unflagged fabrication in a fixed adversarial batch.** AUTO-13,
+   AUTO-14, AUTO-16, AUTO-17 (and the pre-existing source-citation test in
+   `tests/test_orchestrator.py`) reproduce the exact wording of real
+   fabrications a live model produced during testing - inventing
+   institutions, inventing degree programmes, contradicting an
+   already-computed eligibility result, and inferring a specific
+   programme's eligibility from a broader category - and assert the
    deterministic guard layer catches every one. "Useful" for this system
    specifically means a student is never left trusting an unflagged wrong
    answer about their own eligibility, even when the underlying language
-   model gets it wrong.
+   model gets it wrong. AUTO-18 and AUTO-19 hold the guards themselves to
+   the same standard in the other direction: an honest, correct reply
+   must not get an unwarranted fabrication warning either (see Failures
+   19-20) - a criterion that only exists because two real false positives
+   were caught live and are now regression-tested.
 3. **Honest refusal rate on out-of-scope questions.** `MANUAL-05` and
    `MANUAL-08` (see `docs/evaluation.md`'s evaluation set) check that a
    question with no real data behind it - a cutoff for a university this
@@ -64,7 +70,8 @@ faith:
    running the manual cases against a live Ollama instance, recorded in
    `docs/evaluation.md`), not an automated one - stated here as a
    criterion precisely because it can't be faked by only reporting the
-   automated cases that can.
+   automated cases that can. Status: both have now been run live against
+   `llama3.1:8b` and recorded as PASS in `docs/evaluation.md`.
 
 These are deliberately narrow and mechanical rather than aspirational
 ("improves student outcomes," "saves counsellor time") - a measurable
@@ -130,11 +137,18 @@ ollama pull nomic-embed-text
 
 ## Running Locally
 
-> TODO — add once main.py has the full API wired up.
+With Ollama running and both models pulled (previous section):
 
 ```bash
 uvicorn main:app --reload
 ```
+
+This builds the RAG index on startup (see `main.py`'s `lifespan` - added
+as the fix for Failure 21 below) and serves the chat UI at
+`http://127.0.0.1:8000/`. `/health` confirms the process is up without
+needing Ollama/Chroma to be ready. If you edit anything in
+`data/raw/*.md`, the index won't pick it up on a restart alone - see
+Failure 21's "what this doesn't fix" below.
 
 ## Running with Docker
 

@@ -434,6 +434,40 @@ def case_verified_institution_matched_case_insensitively() -> EvalResult:
     return EvalResult(False, f"False positive: flagged a verified institution over a case mismatch: {flagged}")
 
 
+def case_rag_index_built_on_app_startup() -> EvalResult:
+    """Regression case for Failure 21: nothing in the running app ever
+    called retriever.build_index() - not in main.py, not lazily inside
+    retrieve_context - so a fresh clone's vector store was always empty
+    and retrieve_context always returned zero results regardless of
+    corpus content. Proves main.py's startup actually triggers indexing,
+    without needing a live Ollama: retriever.build_index itself is
+    spied on (not the embedding call inside it), so this only checks
+    that the app's startup path calls it at all, not that real
+    embeddings are correct - that still needs a live-Ollama check.
+    """
+    import main as main_module
+    from fastapi.testclient import TestClient
+    from app.rag import retriever as retriever_module
+
+    called = {"happened": False}
+    original_build_index = retriever_module.build_index
+
+    def spy_build_index(*args, **kwargs):
+        called["happened"] = True
+        return 0  # don't actually touch Ollama/Chroma - presence of the call is what's tested
+
+    retriever_module.build_index = spy_build_index
+    try:
+        with TestClient(main_module.app):
+            pass
+    finally:
+        retriever_module.build_index = original_build_index
+
+    if called["happened"]:
+        return EvalResult(True, "App startup correctly called retriever.build_index()")
+    return EvalResult(False, "main.py's startup never called retriever.build_index() at all (Failure 21 regression)")
+
+
 AUTOMATED_CASES = [
     AutomatedCase("AUTO-01", "invalid input", "Invalid WASSCE grade code rejected", case_invalid_grade_code),
     AutomatedCase(
@@ -458,6 +492,7 @@ AUTOMATED_CASES = [
     AutomatedCase("AUTO-17", "misleading or adversarial instructions", "Institution-category mismatch flagged (KNUST under Private University Entry) (Failure 18 regression)", case_institution_category_mismatch_flagged),
     AutomatedCase("AUTO-18", "false positive / reliability", "Honest 'do not have' deferral not flagged as an unverified claim (Failure 19 regression)", case_deferral_with_do_not_have_is_not_flagged),
     AutomatedCase("AUTO-19", "false positive / reliability", "Verified institution matched case-insensitively, not flagged on a case mismatch (Failure 20 regression)", case_verified_institution_matched_case_insensitively),
+    AutomatedCase("AUTO-20", "unavailable data / reliability", "App startup actually calls retriever.build_index(), so a fresh clone's RAG index isn't silently empty (Failure 21 regression)", case_rag_index_built_on_app_startup),
 ]
 
 

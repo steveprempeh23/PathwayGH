@@ -78,6 +78,68 @@ published per institution per admission cycle and can vary from these bands.
 - **HND / Polytechnic (Technical University) tracks**: aggregate up to 48, with
   a required credit in English Language and Core Mathematics.
 
+# Typical Elective Subject Requirements by Programme Category
+
+The aggregate bands above say how low an aggregate needs to be; they do not
+say which three elective subjects actually count toward it for a given
+programme. Public universities generally require the three electives to be
+*relevant to the intended programme*, not just any three credit passes.
+The combinations below are the commonly published, typical elective
+requirements for each category - always confirm against the specific
+institution and programme, since individual departments can add further
+requirements (for example, a specific pass mark in Elective Mathematics).
+
+## Business, Finance, Accounting
+
+Typical relevant electives: Economics, Elective (Further) Mathematics,
+Financial Accounting (also called Principles of Accounts), Business
+Management, and Costing. A candidate most commonly presents three of these
+five, often Economics plus two of the remaining four. General Mathematics
+counts as a core subject, not an elective, for this category - Elective
+Mathematics is a separate subject and is not required everywhere, but is
+commonly preferred for Accounting and Finance-focused programmes
+specifically, more so than for a general Business Administration track.
+
+## Engineering, Pharmacy, Actuarial Science
+
+Typical relevant electives: Physics, Chemistry, and Elective Mathematics.
+These three are the standard combination expected for Engineering and
+Pharmacy programmes specifically. Technical or vocational electives (for
+example Technical Drawing, Applied Electricity, Electronics) are not
+normally accepted as substitutes for Physics, Chemistry, and Elective
+Mathematics at university-level Engineering or Pharmacy admission, even
+though they are themselves legitimate electives for Technical University
+/ HND tracks in the same broad subject area.
+
+## General Science (non-clinical)
+
+Typical relevant electives: any three of Physics, Chemistry, Biology, and
+Elective Mathematics, chosen based on the specific science programme
+(for example, Biology and Chemistry are typically expected for
+Biological Sciences; Physics and Elective Mathematics for Physical
+Sciences or Computer Science).
+
+## General Humanities, Social Sciences, Education
+
+Typical relevant electives vary more widely by specific programme than
+in the science-based categories above, since "Humanities" covers many
+distinct subject areas (Law, Sociology, Political Science, Literature,
+History, French, and others). Commonly accepted electives include
+Government, Economics, Literature in English, French, History,
+Geography, and Christian or Islamic Religious Studies - a candidate
+typically presents three electives drawn from subjects relevant to their
+specific intended programme rather than one fixed combination for the
+whole category.
+
+## Physician Assistantship / Allied Health
+
+Typical relevant electives: Biology, Chemistry, and Physics (or
+Elective Mathematics in place of Physics at some institutions). This
+combination is close to, but not always identical to, the Engineering
+combination above - the two categories are commonly confused in casual
+questions, which is itself one reason an eligibility check should name
+the specific category it checked against, not just say "Science."
+
 # University of Ghana Specific Requirements
 
 For admission to a full-time undergraduate degree programme at the University of
