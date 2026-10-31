@@ -20,7 +20,9 @@
     "https://en.wikipedia.org/wiki/List_of_universities_in_Ghana",
     "https://trenderhq.com/full-list-of-accredited-universities-in-ghana/",
     "https://www.presbyuniversity.edu.gh/site/accreditation-and-affliation/",
-    "https://knutsford.edu.gh/"
+    "https://knutsford.edu.gh/",
+    "https://admissions.ucc.edu.gh/catalogue/programme/cut-off-points",
+    "https://daa.ucc.edu.gh/cut-point"
   ],
   "_retrieved": "2026-10-16",
   "_note": "Aggregate bands below are of two kinds, marked explicitly per category: 'verified_example'/'verified_examples' means drawn from a specific cited cutoff case for a specific institution, programme and admission cycle; 'approximate_band' means a general guidance range, not any one institution's published cutoff. IMPORTANT, found while sourcing the 2026/2027 figures below: different news sources reported slightly different cut-offs for the SAME programme in the SAME cycle (e.g. KNUST Medicine was reported as aggregate 6 in one 2026/27 article and aggregate 7 in another, both citing KNUST's own release). This is real-world evidence that even 'verified' secondary-source figures can disagree, and is exactly why every verified_example below states its specific source and cycle rather than presenting one number as definitive. Neither kind should be presented to a user as a live, guaranteed-current cutoff - the system must state this distinction when answering, and must not imply a live CSSPS/university feed. None of this is historical admissions RECORDS (actual past admitted students' data) - that data is not publicly available anywhere; see docs/extending-data.md.",
@@ -38,7 +40,8 @@
       "confidence": "approximate_band",
       "verified_examples": [
         "University of Ghana, 2026/2027 cycle: MBChB Medicine aggregate 8 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16).",
-        "KNUST, 2026/2027 cycle: BSc Human Biology (Medicine) aggregate 7, Dentistry aggregate 9 or better (source: yen.com.gh reporting KNUST's entrance-exam announcement, accessed 2026-10-16). Note: a separate 2026/27 secondary source reported KNUST Medicine as aggregate 6 instead of 7 - the two disagree, which is itself the reason this is labeled a cited example rather than a guaranteed figure."
+        "KNUST, 2026/2027 cycle: BSc Human Biology (Medicine) aggregate 7, Dentistry aggregate 9 or better (source: yen.com.gh reporting KNUST's entrance-exam announcement, accessed 2026-10-16). Note: a separate 2026/27 secondary source reported KNUST Medicine as aggregate 6 instead of 7 - the two disagree, which is itself the reason this is labeled a cited example rather than a guaranteed figure.",
+        "University of Cape Coast (UCC), POST-WASSCE 2025: Medicine and Surgery aggregate 8 (source: UCC admissions cut-off catalogue, admissions.ucc.edu.gh/catalogue/programme/cut-off-points, accessed 2026-10-31)."
       ],
       "required_core": [
         "English Language",
@@ -67,7 +70,10 @@
       "category": "Physician Assistantship / Allied Health",
       "example_programmes": [
         "BSc Physician Assistantship",
-        "Bachelor of Physician Assistantship"
+        "Bachelor of Physician Assistantship",
+        "BSc Nursing",
+        "BSc Midwifery",
+        "BSc Medical Laboratory Science"
       ],
       "aggregate_band": {
         "best": 9,
@@ -76,7 +82,8 @@
       "confidence": "approximate_band",
       "verified_examples": [
         "University of Health and Allied Sciences (UHAS): Bachelor of Physician Assistantship cut-off point 09 (source: Wikipedia's UHAS article, citing UHAS's own programme/cut-off table).",
-        "University for Development Studies (UDS): BSc Physician Assistantship indicative cut-off reported as aggregate 10 (source: ghanaunichecker.com - a secondary admissions-info site, not UDS's own release, so treat this one figure as lower-confidence than the UHAS figure above)."
+        "University for Development Studies (UDS): BSc Physician Assistantship indicative cut-off reported as aggregate 10 (source: ghanaunichecker.com - a secondary admissions-info site, not UDS's own release, so treat this one figure as lower-confidence than the UHAS figure above).",
+        "University of Cape Coast (UCC), POST-WASSCE 2025: BSc Nursing aggregate 12, BSc Midwifery aggregate 12, BSc Medical Laboratory Science aggregate 12 (source: UCC admissions cut-off catalogue, accessed 2026-10-31). BSc Physician Assistant Studies has no published cut-off for this cycle - deliberately not estimated; the UCC source itself lists it as 'Not published'."
       ],
       "required_core": [
         "English Language",
@@ -94,7 +101,8 @@
       "elective_min_grade": "C6",
       "institutions_example": [
         "UHAS",
-        "UDS"
+        "UDS",
+        "UCC"
       ],
       "track": "science"
     },
@@ -103,7 +111,8 @@
       "example_programmes": [
         "BSc Biomedical Engineering",
         "BPharm",
-        "BSc Actuarial Science"
+        "BSc Actuarial Science",
+        "Doctor of Optometry"
       ],
       "aggregate_band": {
         "best": 6,
@@ -113,7 +122,8 @@
       "verified_examples": [
         "BSc Biomedical Engineering at University of Ghana, 2020/21 cycle: aggregate 9 with a minimum of B3 in Elective Mathematics. Cited as a specific historical case, not a current cutoff.",
         "BSc Biomedical Engineering at University of Ghana, 2026/2027 cycle: aggregate 6 - the single most competitive cut-off UG published that cycle (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16). Notably lower than the 2020/21 figure above - a real example of how much a specific programme's cutoff can move cycle to cycle, which is exactly why a single number should never be treated as permanently current.",
-        "Doctor of Pharmacy at University of Ghana, 2026/2027 cycle: aggregate 10 (same source)."
+        "Doctor of Pharmacy at University of Ghana, 2026/2027 cycle: aggregate 10 (same source).",
+        "University of Cape Coast (UCC), POST-WASSCE 2025: Doctor of Pharmacy aggregate 9, Doctor of Optometry aggregate 12, BSc Actuarial Science aggregate 16, BSc Chemical Engineering aggregate 18, BSc Agricultural Engineering aggregate 20 (source: UCC admissions cut-off catalogue, accessed 2026-10-31)."
       ],
       "required_core": [
         "English Language",
@@ -151,7 +161,8 @@
       },
       "confidence": "approximate_band",
       "verified_examples": [
-        "BSc Computer Science at University of Ghana, 2026/2027 cycle: aggregate 7 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16)."
+        "BSc Computer Science at University of Ghana, 2026/2027 cycle: aggregate 7 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16).",
+        "University of Cape Coast (UCC), POST-WASSCE 2025: BSc Computer Science aggregate 15, BSc Information Technology aggregate 15, BSc Biochemistry aggregate 16, BSc Biomedical Sciences aggregate 16, BSc Chemistry aggregate 18, BSc Agriculture aggregate 18, BSc Agribusiness aggregate 20, BSc Statistics aggregate 25 (source: UCC admissions cut-off catalogue, accessed 2026-10-31)."
       ],
       "required_core": [
         "English Language",
@@ -185,7 +196,9 @@
       "category": "Business / Finance / Accounting",
       "example_programmes": [
         "BSc Administration (Accounting/Banking/Finance)",
-        "BCom"
+        "BCom",
+        "BSc Economics",
+        "BSc Economics with Finance"
       ],
       "aggregate_band": {
         "best": 6,
@@ -193,7 +206,8 @@
       },
       "confidence": "approximate_band",
       "verified_examples": [
-        "BSc Administration at University of Ghana, 2026/2027 cycle: aggregate 9 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16)."
+        "BSc Administration at University of Ghana, 2026/2027 cycle: aggregate 9 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16).",
+        "University of Cape Coast (UCC), POST-WASSCE 2025: BCom Accounting aggregate 15, BCom Finance aggregate 16, BCom Human Resource Management aggregate 17, BCom Marketing aggregate 20, BCom Procurement and Supply Chain Management aggregate 20, BCom Management aggregate 22, BSc Economics aggregate 16, BSc Economics with Finance aggregate 17 (source: UCC admissions cut-off catalogue, accessed 2026-10-31)."
       ],
       "required_core": [
         "English Language",
@@ -233,7 +247,9 @@
       },
       "confidence": "approximate_band",
       "verified_examples": [
-        "BA English and BA Sociology at University of Ghana, 2026/2027 cycle: both aggregate 18 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16)."
+        "BA English and BA Sociology at University of Ghana, 2026/2027 cycle: both aggregate 18 (source: yen.com.gh reporting UG's published cut-off points, accessed 2026-10-16).",
+        "University of Cape Coast (UCC), POST-WASSCE 2025, Arts/Humanities: BA Communication Studies aggregate 17, BA African Studies aggregate 19, BA Linguistics, BA Population and Health, and BA Social Sciences all aggregate 20, BA Arts and BA Anthropology both aggregate 22, BA Theatre Studies aggregate 23, BA Chinese and BA Film Studies both aggregate 25 (source: UCC admissions cut-off catalogue, accessed 2026-10-31).",
+        "University of Cape Coast (UCC), POST-WASSCE 2025, B.Ed. programmes: B.Ed. Communication Design aggregate 17, B.Ed. Accounting, B.Ed. Economics, B.Ed. Mathematics, and B.Ed. Social Studies all aggregate 18, B.Ed. Geography and B.Ed. History both aggregate 19, B.Ed. English, B.Ed. Ghanaian Language and Culture, B.Ed. Accounting with Management, and B.Ed. ICT all aggregate 20, B.Ed. Agriculture, B.Ed. Robotics and Intelligent Systems, and B.Ed. Science all aggregate 22, B.Ed. Inclusive Education aggregate 23 (source: UCC admissions cut-off catalogue, accessed 2026-10-31)."
       ],
       "required_core": [
         "English Language",
@@ -382,9 +398,42 @@
         "Takoradi Technical University"
       ],
       "track": "technical"
+    },
+    {
+      "category": "Law",
+      "example_programmes": [
+        "LLB Law"
+      ],
+      "aggregate_band": {
+        "best": 12,
+        "worst": 12
+      },
+      "confidence": "verified_example",
+      "verified_examples": [
+        "University of Cape Coast (UCC), POST-WASSCE 2025: LLB Law aggregate 12 (source: UCC admissions cut-off catalogue, admissions.ucc.edu.gh/catalogue/programme/cut-off-points, accessed 2026-10-31)."
+      ],
+      "_note": "Single-institution, single-cycle data point - this is not a general Ghanaian public-university Law band, just the one sourced UCC figure. Treat aggregate_band as illustrative of this one case, not a guaranteed range for Law generally or at other institutions.",
+      "required_core": [
+        "English Language",
+        "Core Mathematics",
+        "Social Studies"
+      ],
+      "required_electives": {
+        "type": "choose_n",
+        "n": 3,
+        "options": [
+          "any approved Arts elective"
+        ]
+      },
+      "elective_min_grade": "C6",
+      "institutions_example": [
+        "UCC"
+      ],
+      "track": "arts"
     }
   ],
   "_institutions_example_note": "institutions_example lists below were expanded on 2026-10-18 from GTEC's 2026 list of the 16 real public Traditional Universities and 10 real public Technical Universities in Ghana (see _source_urls). For Medicine/Dentistry, Engineering/Pharmacy/Actuarial Science, General Science, Business/Finance/Accounting, and General Humanities/Social Sciences/Education, only universities independently documented as actually running a programme in that category are listed - this is still a representative sample, not a claim that every listed university offers every example programme in that category, and not a guarantee of admission. For 'Open Public-University Entry' and 'HND / Polytechnic Tracks', the full real list of all 16 Traditional and all 10 Technical public universities is given, since those two categories are defined as the general floor / the technical-university track as a whole, not a specific programme.",
   "_physician_assistantship_note": "Added 2026-10-18 as a new, 8th programme_category. Scope deliberately limited to PUBLIC universities (UHAS, UDS), matching every other category in this file - several private colleges also run Physician Assistantship programmes but are out of scope here. elective_min_grade is C6 (an ordinary WASSCE credit pass), deliberately lower than Medicine/Dentistry's B3, even though both categories share the same three required electives - this is a real, sourced difference in competitiveness, not a copy-paste of the Medicine entry.",
-  "_private_university_category_note": "Added 2026-10-20 as a new, 9th programme_category, from a user-supplied 37-school list. Two of the user's 17 'private' entries - UPSA and GCTU - were corrected to public (both are GTEC Traditional Universities, already in 'Open Public-University Entry', established by their own Acts of Parliament) rather than filed twice under different statuses. The remaining 15 were independently cross-checked against GTEC's own accredited-institutions list and multiple secondary sources (see _source_urls) before being added - not accepted on the user's list alone. No per-institution aggregate cutoffs or programme lists exist for any of these 15 yet - that is real, separate sourcing work, same as every other honest gap in this file."
+  "_private_university_category_note": "Added 2026-10-20 as a new, 9th programme_category, from a user-supplied 37-school list. Two of the user's 17 'private' entries - UPSA and GCTU - were corrected to public (both are GTEC Traditional Universities, already in 'Open Public-University Entry', established by their own Acts of Parliament) rather than filed twice under different statuses. The remaining 15 were independently cross-checked against GTEC's own accredited-institutions list and multiple secondary sources (see _source_urls) before being added - not accepted on the user's list alone. No per-institution aggregate cutoffs or programme lists exist for any of these 15 yet - that is real, separate sourcing work, same as every other honest gap in this file.",
+  "_ucc_addition_note": "Added 2026-10-31: University of Cape Coast (UCC) POST-WASSCE 2025 cut-off figures, from a 54-programme list the user supplied (UCC's own admissions catalogue and DAA cut-off page). Folded into the 8 existing matching categories as verified_examples rather than duplicating category structure, and added one new category - 'Law' (10th) - since none of the existing categories covered LLB Law. The source list itself is not UCC's complete programme catalogue (54 selected entries) and states these figures should be checked against the live UCC admissions database before being used for an actual application decision; BSc Physician Assistant Studies was listed as 'Not published' for this cycle and is not estimated here."
 }

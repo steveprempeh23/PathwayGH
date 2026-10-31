@@ -1,5 +1,75 @@
 # PathwayGH Advisor — System Architecture
 
+## Problem Statement
+
+**The problem.** Ghanaian SHS students choosing a tertiary programme face
+three compounding information problems at once: (1) WAEC's aggregate
+calculation rule itself is non-obvious (best 3 electives + the better of
+Integrated Science/Social Studies + two cores, not just "add six grades"),
+(2) programme cutoffs are scattered across dozens of institution-specific
+PDFs and news articles that frequently disagree with each other even for
+the same programme and cycle, and (3) guidance counsellors — the people
+meant to resolve this — are typically responsible for hundreds of
+students each, so most students get this information secondhand, late,
+or not at all. The result is students under- or over-estimating their own
+eligibility and making consequential application decisions on bad
+information.
+
+**Who experiences it.** SHS final-year students in Ghana preparing
+WASSCE applications, as the primary users; guidance counsellors, as a
+secondary user who could hand this to a student instead of doing the
+lookup themselves.
+
+**Why AI specifically.** The *calculation* and *lookup* parts of this
+problem don't need AI at all — and PathwayGH deliberately doesn't use an
+LLM for either (see the "Deterministic tools for arithmetic/lookup" note
+under Justification of Key Decisions, below). What does need AI is the
+layer on top: a student doesn't ask "what's my aggregate," they ask "what
+electives does Business need" or "can I do Law with these grades," in
+their own words, sometimes with missing information, sometimes asking a
+question the system genuinely can't answer from its corpus. That's a
+natural-language interpretation and retrieval-grounded explanation
+problem, not an arithmetic one — which is exactly why the architecture is
+calculator-first, LLM-second: deterministic code owns the number, the LLM
+owns explaining it.
+
+**Main capabilities.**
+1. Deterministic WASSCE aggregate calculation and programme-category
+   eligibility checking (no LLM involved).
+2. Conversational Q&A over a real, cited WAEC/GTEC admission guide via
+   RAG — not the model's unguided recollection.
+3. Honest "I don't know" when a question falls outside the sourced
+   corpus, rather than inventing a cutoff.
+4. Cohort-level illustrative analysis (synthetic data, clearly labeled as
+   such).
+
+**Limitations / risks requiring human review.**
+1. Cutoff data is a point-in-time snapshot (2026/2027 UG/KNUST figures,
+   2025 UCC figures) — a real source was found to disagree with another
+   source by a point for the same programme and cycle, so no figure here
+   should be treated as a live, guaranteed-current number. A student
+   should always confirm against the institution's own published list
+   before applying.
+2. Real per-institution programme data exists for only 2 institutions
+   (UG, KNUST); every other listed institution — UCC included — has
+   category-level examples only, not an institution-specific programme
+   list.
+3. The deterministic fabrication guards are heuristic (regex/substring-
+   tuned to observed failure phrasings), not exhaustive — a model
+   paraphrasing a false claim differently than it has so far could slip
+   past undetected.
+4. Chat cannot calculate a student's own aggregate from a typed-out set
+   of grades (by design, after Failure 6) — a student must use the
+   deterministic "Enter My Grades" form, which is a UX constraint a
+   careless reader could miss.
+
+**Measurable success criterion.** 100% of `scripts/run_eval.py`'s
+automated cases pass, with zero unflagged fabrication in the adversarial
+batch — i.e., a student is never left trusting an unflagged wrong answer
+about their own eligibility, even on the turns where the underlying 8B
+model gets it wrong, because the deterministic guard layer catches it.
+This is checkable by anyone with one command, not a claim taken on faith.
+
 ## Diagram
 
 ```mermaid
