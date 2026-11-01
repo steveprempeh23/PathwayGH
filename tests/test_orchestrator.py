@@ -640,6 +640,217 @@ def test_eligibility_contradiction_empty_when_no_calculation_saved_yet():
     assert result["eligibility_contradictions"] == []
 
 
+def test_eligibility_contradiction_flagged_for_backwards_aggregate_reason():
+    """Regression test for Failure 22 (docs/evaluation.md): a live reply
+    got the overall verdict RIGHT ("not eligible" for "Actuarial Science",
+    matching the real saved result) but the REASON it gave was invented
+    and backwards - "the aggregate score of 6 is below the required band
+    of 18 or better", blaming the aggregate, when 6 is comfortably inside
+    a 6-18 band (WASSCE aggregates run lower-is-better) and the real
+    reason was the student's electives. Failure 15's guard alone can't
+    catch this because it only compares the eligible/not-eligible
+    boolean, which matched here. This also exercises the "Actuarial
+    Science" short-form category match (not the full "Engineering /
+    Pharmacy / Actuarial Science" string) and the reason sitting in the
+    sentence AFTER the one stating the verdict.
+    """
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="general",
+        electives={"Elective Mathematics": "A1", "Economics": "A1", "Accounting": "A1"},
+    )
+    session_store.set_last_calculation("session-contra-aggreason", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "Unfortunately, based on the submitted grades, it appears that "
+                    "you are not eligible for Actuarial Science. The aggregate "
+                    "score of 6 is below the required band of 18 or better for "
+                    "this category. Additionally, the elective subjects/grades do "
+                    "not satisfy the requirements for this category."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-contra-aggreason", "want actuarial science", chat_fn=fake)
+
+    contradictions = result["eligibility_contradictions"]
+    assert len(contradictions) == 1
+    assert contradictions[0]["category"] == "Engineering / Pharmacy / Actuarial Science"
+    assert "aggregate (6)" in contradictions[0]["model_said"]
+    assert "electives" in contradictions[0]["actual"]
+
+
+def test_eligibility_contradiction_empty_when_aggregate_reason_correct():
+    """True negative: the model correctly attributes ineligibility to
+    electives, not the (fine) aggregate - must not be flagged."""
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="general",
+        electives={"Elective Mathematics": "A1", "Economics": "A1", "Accounting": "A1"},
+    )
+    session_store.set_last_calculation("session-correct-reason", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You're not eligible for Actuarial Science. Your aggregate is "
+                    "fine, but your electives don't match what this category "
+                    "requires."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-correct-reason", "actuarial science?", chat_fn=fake)
+    assert result["eligibility_contradictions"] == []
+
+
+def test_eligibility_contradiction_empty_when_aggregate_genuinely_the_problem():
+    """True negative: a genuinely too-high aggregate (above the band) IS
+    the real reason - the model saying so must not be flagged."""
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=30,
+        track="general",
+        electives={"Elective Mathematics": "A1", "Physics": "A1", "Chemistry": "A1"},
+    )
+    session_store.set_last_calculation("session-genuine-reason", {"aggregate": 30}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You're not eligible for Actuarial Science. Your aggregate "
+                    "score of 30 is above the required band of 18 or better for "
+                    "this category."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-genuine-reason", "actuarial science?", chat_fn=fake)
+    assert result["eligibility_contradictions"] == []
+
+
+def test_eligibility_contradiction_flagged_for_requires_x_or_better_phrasing():
+    """Regression test for Failure 23 (docs/evaluation.md): the same
+    backwards-aggregate-blame error as Failure 22, but caught live in a
+    DIFFERENT wording Failure 22's first regex didn't cover - "The
+    aggregate for Actuarial Science requires 18 or better, and you have
+    an aggregate of 6" - which never uses any of "is/below/does not
+    meet/exceeds", only "requires ... or better"."""
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="general",
+        electives={"Economics": "A1", "Elective Mathematics": "A1", "Accounting": "A1"},
+    )
+    session_store.set_last_calculation("session-requires-wording", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You are not eligible for Actuarial Science. The aggregate for "
+                    "Actuarial Science requires 18 or better, and you have an "
+                    "aggregate of 6. While your aggregate is within the eligible "
+                    "band for other categories, the specific requirements for "
+                    "Actuarial Science are not met."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-requires-wording", "I want actuarial science", chat_fn=fake)
+
+    contradictions = result["eligibility_contradictions"]
+    assert len(contradictions) == 1
+    assert contradictions[0]["category"] == "Engineering / Pharmacy / Actuarial Science"
+    assert "electives" in contradictions[0]["actual"]
+
+
+def test_eligibility_contradiction_flagged_for_need_an_aggregate_of_x_phrasing():
+    """Regression test for Failure 23 (docs/evaluation.md): another live
+    wording variant, caught for Medicine / Dentistry - "Your aggregate of
+    6 meets the approximate band for this category, but you need an
+    aggregate of 10 or better to be eligible." Notably this sentence
+    states the TRUE fact (aggregate meets the band) and the FALSE one
+    (you need 10 or better) back to back - the detector can't rely on the
+    sentence being uniformly negative, only on the specific blame
+    phrasing appearing at all."""
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=6,
+        track="general",
+        electives={"Elective Mathematics": "A1", "Physics": "A1", "Biology": "A1"},
+    )
+    session_store.set_last_calculation("session-need-wording", {"aggregate": 6}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You are not eligible for Medicine / Dentistry. Your aggregate "
+                    "of 6 meets the approximate band for this category, but you "
+                    "need an aggregate of 10 or better to be eligible. "
+                    "Additionally, your elective subjects/grades do not satisfy "
+                    "the requirements for this category. If you're interested in "
+                    "pursuing a career in medicine, you may want to consider other "
+                    "options, such as Physician Assistantship / Allied Health, "
+                    "which may have different eligibility requirements."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-need-wording", "i want medicine", chat_fn=fake)
+
+    contradictions = result["eligibility_contradictions"]
+    assert len(contradictions) == 1
+    assert contradictions[0]["category"] == "Medicine / Dentistry"
+    assert "electives" in contradictions[0]["actual"]
+
+
+def test_eligibility_contradiction_empty_for_genuine_need_an_aggregate_of_x_phrasing():
+    """True negative for the broadened "need an aggregate of X or
+    better" pattern: a student who genuinely DOES need a better
+    aggregate, explained with the same wording, must not be flagged."""
+    from app.tools.eligibility_checker import check_eligibility
+
+    elig = check_eligibility(
+        aggregate=30,
+        track="general",
+        electives={"Elective Mathematics": "A1", "Physics": "A1", "Chemistry": "A1"},
+    )
+    session_store.set_last_calculation("session-genuine-need-wording", {"aggregate": 30}, elig.model_dump())
+
+    fake = FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You are not eligible for Actuarial Science. You need an "
+                    "aggregate of 18 or better, and you currently have 30."
+                )
+            ),
+        ]
+    )
+
+    result = orchestrator.handle_turn("session-genuine-need-wording", "actuarial science?", chat_fn=fake)
+    assert result["eligibility_contradictions"] == []
+
+
 def test_get_saved_eligibility_tool_wired_through_orchestrator():
     from app.tools.eligibility_checker import check_eligibility
 

@@ -448,6 +448,127 @@ def case_verified_institution_matched_case_insensitively() -> EvalResult:
     return EvalResult(False, f"False positive: flagged a verified institution over a case mismatch: {flagged}")
 
 
+def case_backwards_aggregate_reason_flagged() -> EvalResult:
+    """Regression case for Failure 22, caught live (31 Oct 2026): a model
+    gave the CORRECT overall verdict ("not eligible" for Actuarial
+    Science, matching the real saved result) but invented a backwards
+    reason - blaming the aggregate ("below the required band of 18") when
+    the real aggregate (6) was comfortably inside the 6-18 band and the
+    real reason was electives. Failure 15's guard alone can't catch this
+    because it only compares the eligible/not-eligible boolean, which
+    matched here. Also exercises the short-form category match
+    ("Actuarial Science", not the full composite category name) and the
+    reason sitting in the sentence after the one stating the verdict."""
+    elig = check_eligibility(
+        aggregate=6,
+        track="general",
+        electives={"Elective Mathematics": "A1", "Economics": "A1", "Accounting": "A1"},
+    )
+    session_store.set_last_calculation("eval-aggregate-reason", {"aggregate": 6}, elig.model_dump())
+
+    fake = _FakeChat(
+        [
+            _assistant(
+                content=(
+                    "Unfortunately, based on the submitted grades, it appears that "
+                    "you are not eligible for Actuarial Science. The aggregate "
+                    "score of 6 is below the required band of 18 or better for "
+                    "this category. Additionally, the elective subjects/grades do "
+                    "not satisfy the requirements for this category."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-aggregate-reason", "want actuarial science", chat_fn=fake)
+    contradictions = result["eligibility_contradictions"]
+    if (
+        contradictions
+        and contradictions[0]["category"] == "Engineering / Pharmacy / Actuarial Science"
+        and "aggregate (6)" in contradictions[0]["model_said"]
+        and "electives" in contradictions[0]["actual"]
+    ):
+        return EvalResult(True, f"Correctly flagged the backwards aggregate-blame reason: {contradictions}")
+    return EvalResult(False, f"Failed to flag backwards aggregate reason: {contradictions}")
+
+
+def case_requires_x_or_better_wording_flagged() -> EvalResult:
+    """Regression case for Failure 23, caught live (31 Oct 2026) right
+    after Failure 22's fix shipped: the same backwards aggregate-blame
+    error, but in wording Failure 22's first regex didn't cover -
+    "The aggregate for Actuarial Science requires 18 or better, and you
+    have an aggregate of 6" - which never uses any of "is/below/does not
+    meet/exceeds", only "requires ... or better"."""
+    elig = check_eligibility(
+        aggregate=6,
+        track="general",
+        electives={"Economics": "A1", "Elective Mathematics": "A1", "Accounting": "A1"},
+    )
+    session_store.set_last_calculation("eval-requires-wording", {"aggregate": 6}, elig.model_dump())
+
+    fake = _FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You are not eligible for Actuarial Science. The aggregate "
+                    "for Actuarial Science requires 18 or better, and you have an "
+                    "aggregate of 6. While your aggregate is within the eligible "
+                    "band for other categories, the specific requirements for "
+                    "Actuarial Science are not met."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-requires-wording", "I want actuarial science", chat_fn=fake)
+    contradictions = result["eligibility_contradictions"]
+    if (
+        contradictions
+        and contradictions[0]["category"] == "Engineering / Pharmacy / Actuarial Science"
+        and "electives" in contradictions[0]["actual"]
+    ):
+        return EvalResult(True, f"Correctly flagged the 'requires X or better' wording: {contradictions}")
+    return EvalResult(False, f"Failed to flag 'requires X or better' wording: {contradictions}")
+
+
+def case_need_an_aggregate_of_x_wording_flagged() -> EvalResult:
+    """Regression case for Failure 23, caught live (31 Oct 2026): a third
+    wording for the same error, for Medicine / Dentistry -
+    "Your aggregate of 6 meets the approximate band for this category,
+    but you need an aggregate of 10 or better to be eligible." Worth
+    noting this sentence states the TRUE fact (aggregate meets the band)
+    and the FALSE one (you need 10 or better) back to back - the
+    detector can't rely on the sentence being uniformly negative, only on
+    the specific blame phrasing appearing at all."""
+    elig = check_eligibility(
+        aggregate=6,
+        track="general",
+        electives={"Elective Mathematics": "A1", "Physics": "A1", "Biology": "A1"},
+    )
+    session_store.set_last_calculation("eval-need-wording", {"aggregate": 6}, elig.model_dump())
+
+    fake = _FakeChat(
+        [
+            _assistant(
+                content=(
+                    "You are not eligible for Medicine / Dentistry. Your "
+                    "aggregate of 6 meets the approximate band for this "
+                    "category, but you need an aggregate of 10 or better to be "
+                    "eligible. Additionally, your elective subjects/grades do "
+                    "not satisfy the requirements for this category."
+                )
+            ),
+        ]
+    )
+    result = orchestrator.handle_turn("eval-need-wording", "i want medicine", chat_fn=fake)
+    contradictions = result["eligibility_contradictions"]
+    if (
+        contradictions
+        and contradictions[0]["category"] == "Medicine / Dentistry"
+        and "electives" in contradictions[0]["actual"]
+    ):
+        return EvalResult(True, f"Correctly flagged the 'need an aggregate of X or better' wording: {contradictions}")
+    return EvalResult(False, f"Failed to flag 'need an aggregate of X or better' wording: {contradictions}")
+
+
 def case_rag_index_built_on_app_startup() -> EvalResult:
     """Regression case for Failure 21: nothing in the running app ever
     called retriever.build_index() - not in main.py, not lazily inside
@@ -507,6 +628,9 @@ AUTOMATED_CASES = [
     AutomatedCase("AUTO-18", "false positive / reliability", "Honest 'do not have' deferral not flagged as an unverified claim (Failure 19 regression)", case_deferral_with_do_not_have_is_not_flagged),
     AutomatedCase("AUTO-19", "false positive / reliability", "Verified institution matched case-insensitively, not flagged on a case mismatch (Failure 20 regression)", case_verified_institution_matched_case_insensitively),
     AutomatedCase("AUTO-20", "unavailable data / reliability", "App startup actually calls retriever.build_index(), so a fresh clone's RAG index isn't silently empty (Failure 21 regression)", case_rag_index_built_on_app_startup),
+    AutomatedCase("AUTO-21", "misleading or adversarial instructions", "Correct verdict but backwards aggregate-blame reason flagged (Failure 22 regression)", case_backwards_aggregate_reason_flagged),
+    AutomatedCase("AUTO-22", "misleading or adversarial instructions", "'requires X or better' aggregate-blame wording flagged (Failure 23 regression)", case_requires_x_or_better_wording_flagged),
+    AutomatedCase("AUTO-23", "misleading or adversarial instructions", "'need an aggregate of X or better' wording flagged for a true fact + false blame in the same sentence (Failure 23 regression)", case_need_an_aggregate_of_x_wording_flagged),
 ]
 
 

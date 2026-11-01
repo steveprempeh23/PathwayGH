@@ -1279,6 +1279,128 @@ has not been confirmed. Re-run `python scripts/run_manual_eval.py
 MANUAL-06` after deleting `data/chroma/` before relying on this in a live
 demo.
 
+### Failure 22: correct eligibility verdict, backwards reason - the model blamed a fine aggregate instead of the real cause (observed live, 31 Oct 2026)
+
+**What happened:** a student with aggregate 6 and electives Elective
+Mathematics/Economics/Accounting asked about Actuarial Science. The
+deterministic "Enter My Grades" table correctly showed "Engineering /
+Pharmacy / Actuarial Science ... Not eligible" (electives don't match -
+no Chemistry/Physics). The model's own verdict agreed: "you are not
+eligible for Actuarial Science." But its stated reason was invented and
+backwards: "The aggregate score of 6 is below the required band of 18 or
+better for this category." WASSCE aggregates run lower-is-better; 6 is
+comfortably inside the category's 6-18 band, so the aggregate was never
+the problem - the model manufactured a plausible-sounding but false
+explanation on top of a correct verdict.
+
+**Why Failure 15's guard didn't catch this:** `detect_eligibility_contradictions`
+only compares the claimed eligible/not-eligible boolean against the real
+saved result. Here they matched (both "not eligible"), so the guard found
+nothing to flag - it has no concept of a *reason* being wrong when the
+*verdict* is right.
+
+**A second, more fundamental gap found while fixing the first:** the
+guard's category matching was `category not in sentence` - an exact
+substring check against the full composite name, e.g. "Engineering /
+Pharmacy / Actuarial Science". The model's reply said "Actuarial
+Science," which is never a substring of that composite string, so even
+Failure 15's own verdict check was silently matching nothing for this
+reply - it only ever worked when the model happened to echo the full
+slash-joined category name back verbatim, which short-form answers like
+this one don't. This almost certainly means Failure 15's fix was less
+protective in practice than its own passing tests suggested.
+
+**Fix:**
+1. `_category_mentioned()` added to `app/tools/eligibility_claim_guard.py`,
+   splitting a composite category on "/" and matching any part longer
+   than 3 characters, not just the full joined string. Used by both the
+   existing verdict check and the new one below.
+2. New check inside `detect_eligibility_contradictions`: once a
+   category's claimed verdict is confirmed to be "not eligible" and
+   matches the real result, and the real result shows
+   `aggregate_eligible=True` for that category, the verdict sentence and
+   the one immediately following it (reason explanations very often land
+   in the next sentence, referring back with "this category"/"it" rather
+   than repeating the name - a bounded two-sentence window, not an
+   unbounded one; see Failure 18 for why an unbounded window is itself a
+   bug) are checked against `_AGGREGATE_BLAME_RE` for language blaming
+   the aggregate ("aggregate ... is/does not meet/below/above/exceeds ...
+   required/band/cutoff"). A match produces a correction naming the real
+   reason (electives or required core, read off the same saved
+   `ProgrammeMatch`), rendered through the exact same
+   `renderEligibilityContradictionWarning` UI path Failure 15 built - no
+   frontend change needed, since the dict shape is identical.
+
+Verified with `test_eligibility_contradiction_flagged_for_backwards_aggregate_reason`
+(reproduces this live reply verbatim, including the short-form category
+name and the reason sitting in a separate sentence),
+`test_eligibility_contradiction_empty_when_aggregate_reason_correct`, and
+`test_eligibility_contradiction_empty_when_aggregate_genuinely_the_problem`
+(a real too-high aggregate blamed correctly must not be flagged) in
+`tests/test_orchestrator.py`. Full suite re-run clean after the change
+(127 passed).
+
+**What this doesn't fix:** same heuristic nature as every other guard in
+this file - `_AGGREGATE_BLAME_RE` is tuned to the observed live phrasing,
+not a general understanding of causal attribution, and the two-sentence
+window will miss a reason stated three or more sentences later or
+restated in a final summary paragraph far from the original verdict. The
+system prompt (`system_prompt.py` rule 5c) still does not explicitly tell
+the model to quote `get_saved_eligibility`'s `reason` field rather than
+paraphrasing it freely - that prompt-level tightening would reduce how
+often this class of error occurs in the first place, independent of
+whether the guard catches it after the fact, and hasn't been done yet.
+
+### Failure 23: Failure 22's own aggregate-blame regex missed two more live wordings ("requires X or better" and "need an aggregate of X or better") (observed live, 31 Oct 2026)
+
+**What happened:** two more live replies from the same session type as
+Failure 22, caught back to back:
+
+1. *Actuarial Science* - "The aggregate for Actuarial Science requires 18
+   or better, and you have an aggregate of 6." The real aggregate (6) is
+   comfortably inside the 6-18 band; the real reason was electives.
+2. *Medicine / Dentistry* - "Your aggregate of 6 meets the approximate
+   band for this category, but you need an aggregate of 10 or better to
+   be eligible." This one is worth noting on its own: the TRUE fact
+   (aggregate meets the band) and the FALSE one (you need 10 or better)
+   sit in the same sentence, back to back - a detector that assumes a
+   blame sentence will be uniformly negative would miss it.
+
+Both slipped past Failure 22's fix because `_AGGREGATE_BLAME_RE` only
+recognised "aggregate ... is/below/does not meet/exceeds ...
+required/band/cutoff" - it had no branch for "requires ... or better" or
+for "need an aggregate of ... or better," and the second of those
+reverses the usual word order (the blame word "need" comes *before*
+"aggregate," not after).
+
+**Fix:** broadened `_AGGREGATE_BLAME_RE` in
+`app/tools/eligibility_claim_guard.py` with two additions: `requires?`
+added to the existing blame-word group, and `or\s+better` added as an
+acceptable closing anchor alongside `required|band|cutoff|threshold`
+(covers case 1); a second alternative pattern,
+`needs?\s+an\s+aggregate\s+of\s+\d+...or\s+better`, added specifically
+for the reversed word order in case 2, since it can't share the first
+pattern's "aggregate-first" structure.
+
+Verified with `test_eligibility_contradiction_flagged_for_requires_x_or_better_phrasing`
+and `test_eligibility_contradiction_flagged_for_need_an_aggregate_of_x_phrasing`
+in `tests/test_orchestrator.py`, reproducing both live replies verbatim.
+Also added `test_eligibility_contradiction_empty_for_genuine_need_an_aggregate_of_x_phrasing`
+as a true negative: a student who genuinely does need a better aggregate,
+explained with the identical "need an aggregate of X or better" wording,
+must not be flagged - confirmed it isn't. Full suite re-run clean
+(130 passed).
+
+**What this doesn't fix:** this is now the second round of "the regex
+missed a real phrasing" for this exact failure family (Failure
+19 was the same pattern for a different guard). Pattern-matching free
+text for a specific class of claim will keep finding new wordings as
+real users ask real questions; each round narrows the gap but doesn't
+close it, and the same root-cause fix proposed at the end of Failure
+22 - instructing the model to quote `get_saved_eligibility`'s `reason`
+field rather than freely paraphrasing it - would reduce how often new
+wordings appear in the first place, and still hasn't been done.
+
 ## Already-handled failure conditions (Question 11's required list)
 
 | Condition | Handling |

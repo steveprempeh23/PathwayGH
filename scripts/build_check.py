@@ -75,7 +75,7 @@ def check_datasets_load():
     from app.tools.eligibility_checker import _PROGRAMMES
 
     assert len(POINTS) == 9, "expected 9 WASSCE grades"
-    assert len(_PROGRAMMES) == 9, "expected 9 programme categories"
+    assert len(_PROGRAMMES) == 10, "expected 10 programme categories"
 
 
 def check_chunking_runs_on_real_source():
