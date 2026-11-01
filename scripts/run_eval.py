@@ -43,6 +43,7 @@ from app.tools.data_analysis import analyze_outcomes
 from app.tools.eligibility_checker import check_eligibility
 from app.tools.aggregate_calculator import compute_aggregate
 from app.tools.institution_programme_lookup import lookup_institution_programmes
+from app.tools.programme_lookup import lookup_institutions
 from app.tools.institution_claim_guard import detect_unverified_institution_claims
 from app.models.grading import GradeInput, Track
 
@@ -249,10 +250,23 @@ def case_aggregate_better_than_band_best_still_eligible() -> EvalResult:
 
 def case_institutions_lookup_never_invented_beyond_real_list() -> EvalResult:
     """Regression case for Failure 12: asked which schools, a live model
-    invented four institutions beyond the real sourced list for Physician
-    Assistantship / Allied Health ([UHAS, UDS]). The deterministic
-    list_institutions tool result must carry only the real list,
-    independent of what the model's own reply text adds."""
+    invented institutions beyond the real sourced list for Physician
+    Assistantship / Allied Health. The deterministic list_institutions
+    tool result must carry only the real list, independent of what the
+    model's own reply text adds.
+
+    Checked against lookup_institutions() itself rather than a hardcoded
+    list - UCC was for real added to this category's institutions_example
+    after real, sourced UCC cutoff data was added (see docs/evaluation.md),
+    and a hardcoded ["UHAS", "UDS"] broke the moment that legitimate data
+    change landed. University of Ghana, KNUST, and UMaT remain genuinely
+    outside this category's real list even after that change."""
+    real = lookup_institutions("Physician Assistantship / Allied Health").institutions_example
+    assert "University of Ghana" not in real and "KNUST" not in real and "UMaT" not in real, (
+        "fixture assumption broke: one of the 'invented' institutions is now genuinely "
+        "in this category's real list - pick different still-invented names"
+    )
+
     fake = _FakeChat(
         [
             _assistant(
@@ -264,10 +278,10 @@ def case_institutions_lookup_never_invented_beyond_real_list() -> EvalResult:
         ]
     )
     result = orchestrator.handle_turn("eval-institutions-fabrication", "schools for physician assistantship", chat_fn=fake)
-    real = result["institutions_lookup"]["institutions_example"] if result["institutions_lookup"] else None
-    if real == ["UHAS", "UDS"]:
-        return EvalResult(True, "institutions_lookup carried only the real 2-school list despite model inventing 6")
-    return EvalResult(False, f"institutions_lookup did not match the real sourced list: {real}")
+    got = result["institutions_lookup"]["institutions_example"] if result["institutions_lookup"] else None
+    if got == real:
+        return EvalResult(True, f"institutions_lookup carried only the real sourced list {real} despite model inventing extras")
+    return EvalResult(False, f"institutions_lookup did not match the real sourced list: got {got}, expected {real}")
 
 
 def case_institution_programmes_no_data_flagged_honestly() -> EvalResult:

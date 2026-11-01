@@ -162,9 +162,18 @@ def test_institutions_example_populated_from_real_sourced_data():
 
 
 def test_every_category_present_in_result():
+    """Checks against the real category count from programmes.json rather
+    than a hardcoded number - a hardcoded "9" broke the moment a 10th
+    category (Law) was added for real, sourced UCC data, even though
+    nothing was actually wrong. The number of categories is itself real
+    data, not a fixed property of the system, so the test should read it
+    from the same source the app does rather than freeze a snapshot."""
+    from app.tools.eligibility_checker import _load_programmes
+
+    expected_count = len(_load_programmes())
     result = check_eligibility(aggregate=20, track="general", electives={})
     categories = {m.category for m in result.matches}
-    assert len(categories) == 9
+    assert len(categories) == expected_count
 
 
 def test_aggregate_better_than_bands_best_is_still_eligible():

@@ -178,18 +178,16 @@ def test_calculate_endpoint_is_deterministic_and_matches_real_categories():
     body = response.json()
     assert body["aggregate"]["aggregate"] == 8  # within Medicine's 6-10 band
     categories = {m["category"] for m in body["eligibility"]["matches"]}
-    # The real 9 categories from programmes.json - not hallucinated ones.
-    assert categories == {
-        "Medicine / Dentistry",
-        "Physician Assistantship / Allied Health",
-        "Engineering / Pharmacy / Actuarial Science",
-        "General Science (non-clinical)",
-        "Business / Finance / Accounting",
-        "General Humanities / Social Sciences / Education",
-        "Open Public-University Entry (general eligibility floor)",
-        "Private University Entry",
-        "HND / Polytechnic (Technical University) Tracks",
-    }
+    # Checked against the real category names from programmes.json itself,
+    # not a hardcoded snapshot - a fixed list went stale the moment a 10th
+    # category (Law) was added for real, sourced UCC data. Comparing
+    # against the live source of truth still proves the original intent
+    # (no hallucinated category names reach the response) without needing
+    # to be updated by hand every time a category is legitimately added.
+    from app.tools.eligibility_checker import _load_programmes
+
+    real_categories = {c["category"] for c in _load_programmes()}
+    assert categories == real_categories
     medicine = next(m for m in body["eligibility"]["matches"] if "Medicine" in m["category"])
     assert medicine["overall_eligible"] is True  # correct science electives
 

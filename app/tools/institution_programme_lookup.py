@@ -29,6 +29,28 @@ _DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "structured" / "inst
 
 MAX_MATCHES = 30
 
+# The data file stores each institution under one canonical short form (the
+# same form programmes.json's institutions_example lists use - see Failure
+# 20, docs/evaluation.md, for why that consistency matters for the claim
+# guard). Matching was exact-string-only, so a student or model using the
+# full name instead of the short form (a near-certainty for "University of
+# Cape Coast" - far more common in normal speech than "UCC") would get a
+# false has_data_for_institution=False despite real data existing. This is
+# a small, fixed alias table, not general fuzzy matching - it only resolves
+# a query to a canonical key before matching; it does not change what
+# `institution` echoes back in the result (still the caller's original
+# string, unchanged - see orchestrator.py's verified_institutions tracking,
+# which relies on that being the literal string the model typed).
+_INSTITUTION_ALIASES = {
+    "university of cape coast": "UCC",
+    "university of ghana": "University of Ghana",
+    "kwame nkrumah university of science and technology": "KNUST",
+}
+
+
+def _canonical_institution(institution: str) -> str:
+    return _INSTITUTION_ALIASES.get(institution.strip().lower(), institution)
+
 
 def _load_rows() -> list[dict]:
     with _DATA_PATH.open(encoding="utf-8") as f:
@@ -36,13 +58,16 @@ def _load_rows() -> list[dict]:
 
 
 def lookup_institution_programmes(institution: str, keyword: str | None = None) -> InstitutionProgrammeLookup:
-    """Case-insensitive exact match on institution name, optional
-    case-insensitive substring match on programme name. Returns up to
-    MAX_MATCHES rows - total_available_for_institution tells the caller if
-    more exist than were returned, so it doesn't imply a short list is
-    exhaustive when it isn't."""
+    """Case-insensitive exact match on institution name (after resolving a
+    small set of known full-name aliases - see _INSTITUTION_ALIASES above -
+    to their canonical short form), optional case-insensitive substring
+    match on programme name. Returns up to MAX_MATCHES rows -
+    total_available_for_institution tells the caller if more exist than
+    were returned, so it doesn't imply a short list is exhaustive when it
+    isn't."""
     rows = _load_rows()
-    institution_rows = [r for r in rows if r["institution"].lower() == institution.lower()]
+    canonical = _canonical_institution(institution)
+    institution_rows = [r for r in rows if r["institution"].lower() == canonical.lower()]
 
     if not institution_rows:
         return InstitutionProgrammeLookup(

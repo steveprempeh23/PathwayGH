@@ -3,6 +3,7 @@ import pytest
 from app.core import session_store
 from app.core.exceptions import LLMUnavailableError
 from app.llm import orchestrator
+from app.tools.programme_lookup import lookup_institutions
 
 
 @pytest.fixture(autouse=True)
@@ -264,13 +265,27 @@ def test_cohort_stats_carries_synthetic_caveat_even_when_model_narration_drops_i
 def test_institutions_lookup_carries_real_list_even_when_model_narration_invents_others():
     """Regression test for Failure 12 (docs/evaluation.md): a live model
     call, asked which schools it's eligible for in Physician Assistantship
-    / Allied Health (real institutions_example: ['UHAS', 'UDS']), invented
-    four extra institutions (University of Ghana, UCC, KNUST, UMaT) that
-    aren't in that list at all. The fix (mirroring Failure 3's and Failure
-    9's fix) is that result['institutions_lookup']['institutions_example']
+    / Allied Health, invented extra institutions beyond the real sourced
+    list for that category. The fix (mirroring Failure 3's and Failure 9's
+    fix) is that result['institutions_lookup']['institutions_example']
     must carry the real list from code, independent of whatever the
     model's own reply text says or adds.
+
+    The real list is read from lookup_institutions() itself rather than
+    hardcoded here - UCC was for real added to this category's
+    institutions_example after real, sourced UCC cutoff data was added
+    (see docs/evaluation.md), and a hardcoded ['UHAS', 'UDS'] broke the
+    moment that legitimate data change landed, even though nothing was
+    actually wrong. University of Ghana, KNUST, and UMaT remain genuinely
+    outside this category's real list even after that change, so they
+    still exercise the actual regression this test is for.
     """
+    real_list = lookup_institutions("Physician Assistantship / Allied Health").institutions_example
+    assert "University of Ghana" not in real_list and "KNUST" not in real_list and "UMaT" not in real_list, (
+        "test fixture assumption broke: one of the 'invented' institutions below is now "
+        "genuinely in this category's real list - pick different still-invented names"
+    )
+
     fake = FakeChat(
         [
             _assistant(
@@ -300,7 +315,7 @@ def test_institutions_lookup_carries_real_list_even_when_model_narration_invents
     assert "KNUST" in result["reply"]
     # ...but institutions_lookup must carry only the real, sourced list.
     assert result["institutions_lookup"] is not None
-    assert result["institutions_lookup"]["institutions_example"] == ["UHAS", "UDS"]
+    assert result["institutions_lookup"]["institutions_example"] == real_list
     assert "KNUST" not in result["institutions_lookup"]["institutions_example"]
 
 
