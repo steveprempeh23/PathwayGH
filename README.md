@@ -170,26 +170,28 @@ the image. The `Dockerfile`'s `COPY data/ ./data` still matters for a
 standalone `docker build` + `docker run` without compose (no bind mount in
 that case, so the baked-in copy is what actually runs).
 
-**Verification status, stated plainly:** this Dockerfile/compose setup has
-been validated three ways without a Docker runtime available in the build
-environment: (1) the exact file set the `Dockerfile`'s `COPY` instructions
-bring in was replicated into a clean directory, installed into a fresh
-virtualenv from `requirements.txt`, and run with `uvicorn` using the same
-environment variables `docker-compose.yml` sets - `/health`, the web UI,
-session creation, and `/analytics` all responded correctly. (2)
-`docker-compose.yml`'s YAML was validated for correct syntax and structure.
-(3) `scripts/docker_smoke_test.py` - a standalone script that hits
-`/health`, `/session/new`, and `/calculate` (including a second call to
-confirm the `calculations` table round-trips) over real HTTP - was run
-against a live instance of the actual app code and passed every check
-(`--skip-llm` mode, since no Ollama was available either). **None of
-these three is a substitute for actually running `docker compose up
---build` once** - container networking (`app` reaching `ollama` by service
-name), volume mount permissions, and the real build step itself were never
-exercised by any of them. What they rule out is the app's own code being
-broken; what they can't rule out is Docker-specific wiring being broken.
-**Run this the first time you have a real Docker daemon, before a demo
-depends on it:**
+**Verification status, stated plainly:** `docker compose up --build` has
+been run end-to-end against a real Docker daemon - the image built
+cleanly, both containers came up, and `app` reached `ollama` by service
+name for a real chat response through the web UI. Verified manually (used
+the running app in a browser, including a chat exchange that round-tripped
+through Ollama), not yet via `scripts/docker_smoke_test.py` against the
+live containers. A few small issues came up along the way and were fixed;
+the specifics weren't written down, which is itself worth naming as a gap
+- a run worth redoing with the actual errors captured, so they're
+documented rather than just "fixed and forgotten." Before this run, the
+setup had also been validated three ways without a Docker runtime
+available in the build environment, which is weaker evidence but still
+worth keeping on record: (1) the exact file set the `Dockerfile`'s `COPY`
+instructions bring in was replicated into a clean directory, installed
+into a fresh virtualenv from `requirements.txt`, and run with `uvicorn`
+using the same environment variables `docker-compose.yml` sets -
+`/health`, the web UI, session creation, and `/analytics` all responded
+correctly. (2) `docker-compose.yml`'s YAML was validated for correct
+syntax and structure. (3) `scripts/docker_smoke_test.py` was run against a
+live instance of the app code outside Docker and passed every check
+(`--skip-llm` mode, since no Ollama was available in that environment
+either).
 
 ```bash
 docker compose up --build -d
